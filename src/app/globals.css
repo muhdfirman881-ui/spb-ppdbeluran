@@ -1,0 +1,116 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  /* Brand Foundations (Federal Navy & Royal Ochre) */
+  --gov-navy-950: #061528;
+  --gov-navy-900: #0A2342;
+  --gov-navy-800: #12345C;
+  --gov-navy-700: #1B4573;
+  --gov-navy-100: #E8EFF7;
+
+  --gov-gold-600: #B39247;
+  --gov-gold-500: #C9A961;
+  --gov-gold-400: #DEC486;
+  --gov-gold-200: #EEDEB6;
+  --gov-gold-100: #FAF6EB;
+
+  /* Surfaces & Canvas */
+  --surface-base: #FFFFFF;
+  --surface-subtle: #F8FAFC;
+  --surface-card: #FFFFFF;
+  --surface-elevated: #FFFFFF;
+  --surface-overlay: rgba(6, 21, 40, 0.72);
+
+  /* Borders & Dividers */
+  --border-subtle: #E2E8F0;
+  --border-strong: #CBD5E1;
+  --border-focus: #C9A961;
+
+  /* Text & Foreground */
+  --text-main: #0B192C;
+  --text-muted: #526175;
+  --text-dim: #7C8BA0;
+  --text-inverse: #FFFFFF;
+
+  /* Status */
+  --status-success: #15803D;
+  --status-success-bg: #F0FDF4;
+  --status-danger: #B91C1C;
+  --status-danger-bg: #FEF2F2;
+  --status-warning: #B45309;
+  --status-warning-bg: #FFFBEB;
+  --status-info: #0369A1;
+  --status-info-bg: #F0F9FF;
+}
+
+html.dark {
+  --surface-base: #06111E;
+  --surface-subtle: #0B192A;
+  --surface-card: #0F2238;
+  --surface-elevated: #152C48;
+  --surface-overlay: rgba(3, 8, 15, 0.82);
+
+  --border-subtle: #1C3552;
+  --border-strong: #2A4C73;
+
+  --text-main: #F1F5F9;
+  --text-muted: #94A3B8;
+  --text-dim: #64748B;
+
+  --status-success-bg: rgba(21, 128, 61, 0.2);
+  --status-danger-bg: rgba(185, 28, 28, 0.2);
+  --status-warning-bg: rgba(180, 83, 9, 0.2);
+  --status-info-bg: rgba(3, 105, 161, 0.2);
+}
+
+body {
+  background-color: var(--surface-base);
+  color: var(--text-main);
+  transition: background-color 200ms ease, color 200ms ease;
+  font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+}
+
+/* Card Spotlight effect */
+.card-spotlight {
+  position: relative;
+  overflow: hidden;
+}
+
+.card-spotlight::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    600px circle at var(--mouse-x, 0) var(--mouse-y, 0),
+    rgba(201, 169, 97, 0.08),
+    transparent 40%
+  );
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 300ms ease;
+}
+
+.card-spotlight:hover::before {
+  opacity: 1;
+}
+
+/* Custom scrollbars */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(100, 116, 139, 0.25);
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(100, 116, 139, 0.45);
+}
