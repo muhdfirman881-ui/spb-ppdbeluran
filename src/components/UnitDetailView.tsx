@@ -12,12 +12,6 @@ import {
   Camera,
   ExternalLink,
   FolderOpen,
-  CheckCircle2,
-  Briefcase,
-  Mail,
-  Phone,
-  ShieldCheck,
-  UserCheck,
 } from 'lucide-react';
 import { getOptimizedImageUrl } from '@/lib/config';
 
@@ -34,10 +28,6 @@ export const UnitDetailView: React.FC<UnitDetailViewProps> = ({
 }) => {
   const {
     unit,
-    responsibilities = [],
-    services = [],
-    customContent = [],
-    employees = [],
     documents = [],
   } = unitData;
 
@@ -119,158 +109,7 @@ export const UnitDetailView: React.FC<UnitDetailViewProps> = ({
           </div>
         </div>
 
-        {/* Unit Responsibilities & Services from Google Sheets (UnitContent) */}
-        {(responsibilities.length > 0 || services.length > 0) && (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8">
-            {/* Responsibilities */}
-            {responsibilities.length > 0 && (
-              <div className="bg-white dark:bg-gov-navy-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-6 sm:p-8 shadow-xs space-y-4">
-                <div className="flex items-center space-x-2.5 text-gov-navy-900 dark:text-white font-bold text-lg border-b border-slate-100 dark:border-slate-800 pb-3">
-                  <CheckCircle2 className="w-5 h-5 text-emerald-500" />
-                  <span>Fungsi & Tanggungjawab Utama</span>
-                </div>
-                <ul className="space-y-3">
-                  {responsibilities.map((resp, idx) => (
-                    <li key={idx} className="flex items-start space-x-3 text-sm text-slate-700 dark:text-slate-300">
-                      <span className="w-5 h-5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-bold text-xs flex items-center justify-center flex-shrink-0 mt-0.5">
-                        {idx + 1}
-                      </span>
-                      <span className="leading-relaxed">{resp}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
 
-            {/* Services */}
-            {services.length > 0 && (
-              <div className="bg-white dark:bg-gov-navy-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-6 sm:p-8 shadow-xs space-y-4">
-                <div className="flex items-center space-x-2.5 text-gov-navy-900 dark:text-white font-bold text-lg border-b border-slate-100 dark:border-slate-800 pb-3">
-                  <Briefcase className="w-5 h-5 text-gov-gold-500" />
-                  <span>Perkhidmatan & Bimbingan Ditawarkan</span>
-                </div>
-                <ul className="space-y-3">
-                  {services.map((srv, idx) => (
-                    <li key={idx} className="flex items-start space-x-3 text-sm text-slate-700 dark:text-slate-300">
-                      <span className="w-5 h-5 rounded-full bg-gov-gold-500/15 text-gov-gold-600 dark:text-gov-gold-400 font-bold text-xs flex items-center justify-center flex-shrink-0 mt-0.5">
-                        {idx + 1}
-                      </span>
-                      <span className="leading-relaxed">{srv}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* Barisan Pegawai & Staf Unit (Employees) */}
-        <div className="bg-white dark:bg-gov-navy-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-6 sm:p-8 shadow-xs space-y-6">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 dark:border-slate-800 pb-4">
-            <div className="flex items-center space-x-2.5 text-gov-navy-900 dark:text-white font-bold text-lg">
-              <Users className="w-5 h-5 text-gov-gold-500" />
-              <span>Barisan Pegawai & Staf Unit</span>
-              <span className="text-xs px-2.5 py-0.5 rounded-full bg-gov-gold-500/15 text-gov-gold-600 dark:text-gov-gold-400 font-bold ml-1">
-                {employees.length} Pegawai
-              </span>
-            </div>
-            <span className="text-xs text-slate-500 dark:text-slate-400 font-medium">
-              Direktori Rasmi Pegawai {unit.unitName}
-            </span>
-          </div>
-
-          {employees.length > 0 ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
-              {employees.map((emp) => {
-                const initials = emp.name
-                  ? emp.name
-                      .split(' ')
-                      .map((w) => w[0])
-                      .slice(0, 2)
-                      .join('')
-                      .toUpperCase()
-                  : 'PG';
-
-                const photoUrl = emp.photoFileId
-                  ? `/api/images/${emp.photoFileId}`
-                  : null;
-
-                return (
-                  <div
-                    key={emp.employeeId}
-                    className="p-5 rounded-2xl bg-slate-50/80 dark:bg-gov-navy-950/60 border border-slate-200 dark:border-slate-800 hover:border-gov-gold-500/40 hover:shadow-md transition-all flex flex-col justify-between space-y-4"
-                  >
-                    <div className="flex items-start space-x-3.5">
-                      {photoUrl ? (
-                        <img
-                          src={photoUrl}
-                          alt={emp.name}
-                          referrerPolicy="no-referrer"
-                          className="w-12 h-12 rounded-2xl object-cover border border-slate-200 dark:border-slate-700 shadow-xs flex-shrink-0"
-                          onError={(e) => {
-                            (e.target as HTMLElement).style.display = 'none';
-                          }}
-                        />
-                      ) : (
-                        <div className="w-12 h-12 rounded-2xl bg-gov-gold-500/10 border border-gov-gold-500/30 text-gov-gold-600 dark:text-gov-gold-400 font-bold text-sm flex items-center justify-center flex-shrink-0">
-                          {initials}
-                        </div>
-                      )}
-
-                      <div className="min-w-0 flex-1">
-                        <div className="flex items-center space-x-1.5 mb-1">
-                          <span
-                            className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${
-                              emp.accessRole === 'admin'
-                                ? 'bg-purple-100 dark:bg-purple-950/80 text-purple-700 dark:text-purple-300'
-                                : 'bg-gov-gold-500/15 text-gov-gold-600 dark:text-gov-gold-400'
-                            }`}
-                          >
-                            {emp.accessRole === 'admin' ? 'Pentadbir Sektor' : 'Pegawai Unit'}
-                          </span>
-                        </div>
-                        <h4 className="font-bold text-sm text-slate-900 dark:text-white leading-snug">
-                          {emp.name}
-                        </h4>
-                        <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 leading-relaxed">
-                          {emp.position}
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="pt-3 border-t border-slate-200/60 dark:border-slate-800/80 space-y-1.5 text-xs text-slate-500 dark:text-slate-400">
-                      {emp.email && (
-                        <a
-                          href={`mailto:${emp.email}`}
-                          className="flex items-center space-x-2 text-slate-600 dark:text-slate-300 hover:text-gov-gold-600 dark:hover:text-gov-gold-400 transition-colors truncate"
-                        >
-                          <Mail className="w-3.5 h-3.5 flex-shrink-0 text-gov-gold-500" />
-                          <span className="truncate">{emp.email}</span>
-                        </a>
-                      )}
-                      {emp.phone && (
-                        <div className="flex items-center space-x-2 text-slate-600 dark:text-slate-300">
-                          <Phone className="w-3.5 h-3.5 flex-shrink-0 text-gov-gold-500" />
-                          <span>{emp.phone}</span>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          ) : (
-            <div className="p-8 rounded-2xl border-2 border-dashed border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-gov-navy-950/40 text-center space-y-2">
-              <UserCheck className="w-8 h-8 text-gov-gold-500/60 mx-auto" />
-              <h4 className="font-bold text-sm text-slate-800 dark:text-white">
-                Direktori Pegawai {unit.unitName}
-              </h4>
-              <p className="text-xs text-slate-500 dark:text-slate-400 max-w-md mx-auto leading-relaxed">
-                Maklumat pegawai sedang dikemaskini. Anda boleh menghubungi meja urus setia Sektor Pembelajaran PPD Beluran untuk bantuan segera atau semak semula sebentar lagi.
-              </p>
-            </div>
-          )}
-        </div>
 
         {/* Unit Team Photo Showcase (Tempat Gambar Tenaga Unit) */}
         <div className="bg-white dark:bg-gov-navy-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-6 sm:p-8 shadow-xs space-y-4">
