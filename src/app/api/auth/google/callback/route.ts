@@ -42,11 +42,32 @@ export async function GET(request: NextRequest) {
     );
   }
 
-  // 4. Retrieve OAuth credentials
-  const clientId =
+function getOAuthCredentials() {
+  let clientId =
     process.env.GOOGLE_CLIENT_ID ||
     process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
-  const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
+  let clientSecret = process.env.GOOGLE_CLIENT_SECRET;
+
+  if (!clientId || !clientSecret) {
+    try {
+      const fs = require('fs');
+      const path = require('path');
+      const envPath = path.resolve(process.cwd(), '.env.local');
+      if (fs.existsSync(envPath)) {
+        const content = fs.readFileSync(envPath, 'utf8');
+        const matchId = content.match(/GOOGLE_CLIENT_ID=["']?([^"'\r\n]+)["']?/);
+        const matchSecret = content.match(/GOOGLE_CLIENT_SECRET=["']?([^"'\r\n]+)["']?/);
+        if (matchId && matchId[1]) clientId = matchId[1].trim();
+        if (matchSecret && matchSecret[1]) clientSecret = matchSecret[1].trim();
+      }
+    } catch {}
+  }
+
+  return { clientId, clientSecret };
+}
+
+  // 4. Retrieve OAuth credentials
+  const { clientId, clientSecret } = getOAuthCredentials();
   const redirectUri = `${baseUrl}/api/auth/google/callback`;
 
   if (!clientId || !clientSecret) {

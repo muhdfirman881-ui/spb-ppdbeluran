@@ -90,6 +90,9 @@ export const AdminLoginModal: React.FC<AdminLoginModalProps> = ({
         } else {
           setErrorMessage(`Ralat pengesahan Google: ${authError}`);
         }
+
+        // Clean up URL so refreshing the browser will not display the stale error parameter
+        window.history.replaceState({}, '', window.location.pathname);
       }
     } catch {
       // Window search params reading error
@@ -262,8 +265,19 @@ export const AdminLoginModal: React.FC<AdminLoginModalProps> = ({
 
         {/* Alert Error Box */}
         {errorMessage && (
-          <div className="mb-5 p-4 rounded-2xl bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-900/60 text-xs text-red-700 dark:text-red-300 space-y-2">
-            <div className="flex items-start space-x-2">
+          <div className="mb-5 p-4 rounded-2xl bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-900/60 text-xs text-red-700 dark:text-red-300 space-y-2 relative">
+            <button
+              type="button"
+              onClick={() => {
+                setErrorMessage('');
+                setErrorDetails(null);
+              }}
+              className="absolute top-3 right-3 text-red-400 hover:text-red-600 dark:hover:text-red-200 p-1"
+              title="Tutup amaran"
+            >
+              <X className="w-3.5 h-3.5" />
+            </button>
+            <div className="flex items-start space-x-2 pr-6">
               <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5 text-red-600 dark:text-red-400" />
               <div className="flex-1 font-medium leading-relaxed">
                 {errorMessage}
