@@ -7,6 +7,7 @@ import {
   Laptop,
   Users,
   Globe,
+  FileText,
   ExternalLink,
   ChevronRight,
   Bookmark,
@@ -30,6 +31,10 @@ export const QuickAccessSection: React.FC<QuickAccessSectionProps> = ({
         return <Laptop className="w-6 h-6 text-gov-gold-500" />;
       case 'users':
         return <Users className="w-6 h-6 text-gov-gold-500" />;
+      case 'file-text':
+      case 'file':
+      case 'document':
+        return <FileText className="w-6 h-6 text-gov-gold-500" />;
       case 'globe':
       default:
         return <Globe className="w-6 h-6 text-gov-gold-500" />;
@@ -44,7 +49,7 @@ export const QuickAccessSection: React.FC<QuickAccessSectionProps> = ({
           <span>Pautan Pantas & Perkhidmatan Digital Sektor</span>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 sm:gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-5 sm:gap-6">
           {services.map((item, idx) => {
             const isSiscInternal = item.link === '#unit';
 
