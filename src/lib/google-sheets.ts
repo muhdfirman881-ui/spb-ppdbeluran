@@ -1053,6 +1053,7 @@ export class GoogleSheetsService {
 
     const sheets = this.getClient();
     let sheetDocs: DocumentRecord[] = [];
+    let hasLoadedFromSheets = false;
 
     if (sheets) {
       try {
@@ -1092,23 +1093,22 @@ export class GoogleSheetsService {
           };
         }).filter((d) => d.status !== 'inactive');
 
-        if (sheetDocs.length > 0) {
-          globalMemoryDb.documents = [...sheetDocs];
-        }
+        hasLoadedFromSheets = true;
+        globalMemoryDb.documents = [...sheetDocs];
       } catch (err) {
-        console.warn('Google Sheets getDocuments error, using fallback:', err);
+        console.warn('Google Sheets getDocuments error:', err);
       }
     }
 
-    const allDocs = sheetDocs.length > 0 ? sheetDocs : [...globalMemoryDb.documents].filter((d) => d.status !== 'inactive');
+    // When connected to Google Sheets, use live sheet data exclusively.
+    // If a unit (e.g. TVET) has no documents in Google Sheets, return empty array (do NOT inject fake mock data).
+    const allDocs = hasLoadedFromSheets
+      ? sheetDocs
+      : (!sheets ? [...globalMemoryDb.documents].filter((d) => d.status !== 'inactive') : []);
 
     let list: DocumentRecord[] = [];
     if (targetUnit) {
       list = allDocs.filter((d) => this.normalizeUnitId(d.unitId) === targetUnit);
-      if (list.length === 0) {
-        // Fallback to initialDocuments for this unit so every unit has starter documents
-        list = initialDocuments.filter((d) => this.normalizeUnitId(d.unitId) === targetUnit);
-      }
     } else {
       list = allDocs;
     }
