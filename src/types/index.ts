@@ -55,6 +55,7 @@ export interface Unit {
   categoryId: string;
   logoFileId?: string;
   bannerFileId?: string;
+  teamPhotoUrl?: string;
   externalLink?: string;
   displayOrder: number;
   status: 'active' | 'inactive';

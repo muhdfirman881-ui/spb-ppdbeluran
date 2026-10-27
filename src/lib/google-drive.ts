@@ -11,7 +11,7 @@ export class GoogleDriveService {
     );
   }
 
-  private static getClient(): drive_v3.Drive | null {
+  public static getClient(): drive_v3.Drive | null {
     if (!this.isConfigured()) return null;
 
     if (!this.driveApi) {

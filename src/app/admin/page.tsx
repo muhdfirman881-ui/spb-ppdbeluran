@@ -15,6 +15,7 @@ import {
   AdminTab,
 } from '@/types';
 import { getErrorMessage } from '@/lib/errors';
+import { getOptimizedImageUrl } from '@/lib/config';
 import {
   ShieldCheck,
   LogOut,
@@ -759,8 +760,9 @@ export default function AdminDashboardPage() {
                         <td className="py-3 px-4">
                           {a.imageUrl ? (
                             <img
-                              src={a.imageUrl}
+                              src={getOptimizedImageUrl(a.imageUrl)}
                               alt=""
+                              referrerPolicy="no-referrer"
                               className="w-8 h-8 rounded-md object-cover border border-slate-200"
                             />
                           ) : (
@@ -829,8 +831,9 @@ export default function AdminDashboardPage() {
                 >
                   <div className="relative h-44 w-full bg-slate-100 dark:bg-slate-950">
                     <img
-                      src={slide.imageUrl}
+                      src={getOptimizedImageUrl(slide.imageUrl)}
                       alt=""
+                      referrerPolicy="no-referrer"
                       className="w-full h-full object-cover"
                       onError={(e) => {
                         (e.target as HTMLImageElement).src =
@@ -976,6 +979,28 @@ export default function AdminDashboardPage() {
                       onChange={(e) => setEditingUnit({ ...editingUnit, tagline: e.target.value })}
                       className="w-full px-3 py-2 rounded-lg bg-slate-50 dark:bg-gov-navy-950 border border-slate-200 dark:border-slate-800 text-xs focus:border-gov-gold-500 focus:outline-none"
                     />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold mb-1 text-slate-600 dark:text-slate-300">
+                      URL / ID Fail Gambar Tenaga Kerja Unit
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="URL imej terus (https://...) atau ID Google Drive gambar tenaga kerja unit"
+                      value={editingUnit.teamPhotoUrl || editingUnit.bannerFileId || ''}
+                      onChange={(e) =>
+                        setEditingUnit({
+                          ...editingUnit,
+                          teamPhotoUrl: e.target.value,
+                          bannerFileId: e.target.value,
+                        })
+                      }
+                      className="w-full px-3 py-2 rounded-lg bg-slate-50 dark:bg-gov-navy-950 border border-slate-200 dark:border-slate-800 text-xs focus:border-gov-gold-500 focus:outline-none"
+                    />
+                    <span className="text-[10px] text-slate-400 mt-0.5 block">
+                      Foto berkumpulan rasmi pegawai & staf unit untuk dipaparkan di profil unit.
+                    </span>
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

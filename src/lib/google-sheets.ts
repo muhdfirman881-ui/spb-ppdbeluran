@@ -47,8 +47,38 @@ class MemoryDatabase {
 
 const globalMemoryDb = new MemoryDatabase();
 
+// High-Performance In-Memory Cache (TTL: 2 Minutes)
+interface CacheStoreItem<T> {
+  data: T;
+  expires: number;
+}
+const cacheStore = new Map<string, CacheStoreItem<any>>();
+
+function getFromCache<T>(key: string): T | null {
+  const item = cacheStore.get(key);
+  if (!item) return null;
+  if (Date.now() > item.expires) {
+    cacheStore.delete(key);
+    return null;
+  }
+  return item.data;
+}
+
+function saveToCache<T>(key: string, data: T, ttlMs = 120000): T {
+  cacheStore.set(key, { data, expires: Date.now() + ttlMs });
+  return data;
+}
+
+function invalidateSheetCache(): void {
+  cacheStore.clear();
+}
+
 export class GoogleSheetsService {
   private static sheetsApi: sheets_v4.Sheets | null = null;
+
+  static clearCache(): void {
+    invalidateSheetCache();
+  }
 
   private static isConfigured(): boolean {
     return Boolean(
@@ -79,6 +109,131 @@ export class GoogleSheetsService {
     }
 
     return this.sheetsApi;
+  }
+
+  // --- High-Performance Batch Portal Data Fetcher (1 HTTP Request) ---
+  static async getBatchPortalData(): Promise<{
+    heroAlbum: HeroSlide[];
+    announcements: Announcement[];
+    units: Unit[];
+    categories: UnitCategory[];
+    quickAccess: QuickAccessService[];
+  }> {
+    const cacheKey = 'batch_portal_initial_data';
+    const cached = getFromCache<any>(cacheKey);
+    if (cached) return cached;
+
+    const sheets = this.getClient();
+    if (!sheets) {
+      const data = {
+        heroAlbum: [...globalMemoryDb.heroSlides].sort((a, b) => a.order - b.order),
+        announcements: [...globalMemoryDb.announcements].slice(0, 6),
+        units: [...globalMemoryDb.units].sort((a, b) => a.displayOrder - b.displayOrder),
+        categories: [...globalMemoryDb.categories].sort((a, b) => a.displayOrder - b.displayOrder),
+        quickAccess: [...globalMemoryDb.quickAccess].sort((a, b) => a.order - b.order),
+      };
+      return saveToCache(cacheKey, data, 180000);
+    }
+
+    try {
+      const ranges = [
+        `${AppConfig.SHEET_HERO_ALBUM}!A2:E`,
+        `${AppConfig.SHEET_HEBAHAN}!A2:H`,
+        `${AppConfig.SHEET_UNITS}!A2:Q`,
+        `${AppConfig.SHEET_UNIT_CATEGORIES}!A2:F`,
+        `${AppConfig.SHEET_PERKHIDMATAN}!A2:F`,
+      ];
+
+      const res = await sheets.spreadsheets.values.batchGet({
+        spreadsheetId: AppConfig.SPREADSHEET_ID,
+        ranges,
+      });
+
+      const valueRanges = res.data.valueRanges || [];
+      const heroRows = valueRanges[0]?.values || [];
+      const hebahanRows = valueRanges[1]?.values || [];
+      const unitsRows = valueRanges[2]?.values || [];
+      const catRows = valueRanges[3]?.values || [];
+      const quickRows = valueRanges[4]?.values || [];
+
+      const heroAlbum: HeroSlide[] = heroRows.map((r, idx) => ({
+        id: String(r[0] || `slide_${idx + 1}`),
+        imageUrl: String(r[1] || ''),
+        order: Number(r[2] || idx + 1),
+        fileName: String(r[3] || ''),
+        createdAt: String(r[4] || ''),
+      })).sort((a, b) => a.order - b.order);
+
+      const announcements: Announcement[] = hebahanRows.map((r) => ({
+        id: String(r[0] || ''),
+        date: String(r[1] || ''),
+        category: String(r[2] || 'Hebahan'),
+        title: String(r[3] || ''),
+        summary: String(r[4] || ''),
+        link: String(r[5] || ''),
+        imageUrl: String(r[6] || ''),
+        createdAt: String(r[7] || ''),
+      })).reverse().slice(0, 6);
+
+      const units: Unit[] = unitsRows.map((r, idx) => ({
+        unitId: String(r[0] || ''),
+        unitCode: String(r[1] || ''),
+        unitName: String(r[2] || ''),
+        title: String(r[3] || ''),
+        tagline: String(r[4] || ''),
+        description: String(r[5] || ''),
+        icon: String(r[6] || 'folder'),
+        categoryId: String(r[7] || 'CAT_SOKONGAN'),
+        logoFileId: String(r[8] || ''),
+        bannerFileId: String(r[9] || ''),
+        externalLink: String(r[10] || ''),
+        displayOrder: Number(r[11] || idx + 1),
+        status: (r[12] as 'active' | 'inactive') || 'active',
+        hasDocuments: String(r[13]) === 'true',
+        driveFolderId: String(r[14] || ''),
+        createdAt: String(r[15] || ''),
+        updatedAt: String(r[16] || ''),
+      })).filter((u) => u.status !== 'inactive').sort((a, b) => a.displayOrder - b.displayOrder);
+
+      const categories: UnitCategory[] = catRows.map((r, idx) => ({
+        categoryId: String(r[0] || ''),
+        categoryName: String(r[1] || ''),
+        description: String(r[2] || ''),
+        icon: String(r[3] || 'layers'),
+        displayOrder: Number(r[4] || idx + 1),
+        status: (String(r[5] || 'active') as 'active' | 'inactive'),
+      })).filter((c) => c.status === 'active').sort((a, b) => a.displayOrder - b.displayOrder);
+
+      const quickAccess: QuickAccessService[] = (quickRows.length > 0 ? quickRows : []).map((r, idx) => ({
+        title: String(r[0] || ''),
+        description: String(r[1] || ''),
+        icon: String(r[2] || 'globe'),
+        link: String(r[3] || '#'),
+        external: String(r[4]).toLowerCase() === 'true',
+        order: Number(r[5] || idx + 1),
+      })).sort((a, b) => a.order - b.order);
+
+      const data = {
+        heroAlbum: heroAlbum.length > 0 ? heroAlbum : [...globalMemoryDb.heroSlides],
+        announcements: announcements.length > 0 ? announcements : [...globalMemoryDb.announcements].slice(0, 6),
+        units: units.length > 0 ? units : [...globalMemoryDb.units],
+        categories: categories.length > 0 ? categories : [...globalMemoryDb.categories],
+        quickAccess: quickAccess.length > 0 ? quickAccess : [...globalMemoryDb.quickAccess],
+      };
+
+      return saveToCache(cacheKey, data, 180000);
+    } catch (err) {
+      console.warn('batchGet failed, falling back to cached single requests:', err);
+      const [heroAlbum, announcements, units, categories, quickAccess] = await Promise.all([
+        this.getHeroAlbum(),
+        this.getAnnouncements(6),
+        this.getUnits(),
+        this.getCategories(),
+        this.getQuickAccess(),
+      ]);
+      const data = { heroAlbum, announcements, units, categories, quickAccess };
+      return saveToCache(cacheKey, data, 180000);
+    }
   }
 
   // --- Audit Logging ---
@@ -113,10 +268,15 @@ export class GoogleSheetsService {
 
   // --- Announcements (Hebahan) ---
   static async getAnnouncements(limit?: number): Promise<Announcement[]> {
+    const cacheKey = `announcements_${limit || 'all'}`;
+    const cached = getFromCache<Announcement[]>(cacheKey);
+    if (cached) return cached;
+
     const sheets = this.getClient();
     if (!sheets) {
       const items = [...globalMemoryDb.announcements];
-      return limit ? items.slice(0, limit) : items;
+      const result = limit ? items.slice(0, limit) : items;
+      return saveToCache(cacheKey, result, 120000);
     }
 
     try {
@@ -137,14 +297,17 @@ export class GoogleSheetsService {
         createdAt: String(r[7] || ''),
       })).reverse();
 
-      return limit ? announcements.slice(0, limit) : announcements;
+      const result = limit ? announcements.slice(0, limit) : announcements;
+      return saveToCache(cacheKey, result, 120000);
     } catch (err) {
       console.warn('Failed to fetch from Google Sheets, using fallback:', err);
-      return limit ? globalMemoryDb.announcements.slice(0, limit) : globalMemoryDb.announcements;
+      const items = limit ? globalMemoryDb.announcements.slice(0, limit) : globalMemoryDb.announcements;
+      return saveToCache(cacheKey, items, 60000);
     }
   }
 
   static async saveAnnouncement(data: Partial<Announcement>): Promise<Announcement> {
+    invalidateSheetCache();
     const now = new Date().toISOString();
     const id = data.id || `HEB_${Date.now()}`;
     const record: Announcement = {
@@ -222,6 +385,7 @@ export class GoogleSheetsService {
   }
 
   static async deleteAnnouncement(id: string): Promise<boolean> {
+    invalidateSheetCache();
     globalMemoryDb.announcements = globalMemoryDb.announcements.filter((a) => a.id !== id);
 
     const sheets = this.getClient();
@@ -249,9 +413,14 @@ export class GoogleSheetsService {
 
   // --- Hero Album ---
   static async getHeroAlbum(): Promise<HeroSlide[]> {
+    const cacheKey = 'hero_album';
+    const cached = getFromCache<HeroSlide[]>(cacheKey);
+    if (cached) return cached;
+
     const sheets = this.getClient();
     if (!sheets) {
-      return [...globalMemoryDb.heroSlides].sort((a, b) => a.order - b.order);
+      const slides = [...globalMemoryDb.heroSlides].sort((a, b) => a.order - b.order);
+      return saveToCache(cacheKey, slides, 120000);
     }
 
     try {
@@ -261,19 +430,22 @@ export class GoogleSheetsService {
       });
 
       const rows = res.data.values || [];
-      return rows.map((r: (string | number | boolean | null | undefined)[]) => ({
+      const slides = rows.map((r: (string | number | boolean | null | undefined)[]) => ({
         id: String(r[0] || ''),
         imageUrl: String(r[1] || ''),
         order: Number(r[2] || 1),
         fileName: String(r[3] || ''),
         createdAt: String(r[4] || ''),
       })).sort((a: HeroSlide, b: HeroSlide) => a.order - b.order);
+
+      return saveToCache(cacheKey, slides, 120000);
     } catch {
-      return [...globalMemoryDb.heroSlides];
+      return saveToCache(cacheKey, [...globalMemoryDb.heroSlides], 60000);
     }
   }
 
   static async saveHeroAlbum(slides: HeroSlide[]): Promise<HeroSlide[]> {
+    invalidateSheetCache();
     globalMemoryDb.heroSlides = [...slides];
 
     const sheets = this.getClient();
@@ -310,6 +482,7 @@ export class GoogleSheetsService {
   }
 
   static async clearHeroAlbum(): Promise<boolean> {
+    invalidateSheetCache();
     globalMemoryDb.heroSlides = [];
     const sheets = this.getClient();
     if (sheets) {
@@ -326,9 +499,14 @@ export class GoogleSheetsService {
 
   // --- Units ---
   static async getUnits(): Promise<Unit[]> {
+    const cacheKey = 'units_all';
+    const cached = getFromCache<Unit[]>(cacheKey);
+    if (cached) return cached;
+
     const sheets = this.getClient();
     if (!sheets) {
-      return [...globalMemoryDb.units].sort((a, b) => a.displayOrder - b.displayOrder);
+      const list = [...globalMemoryDb.units].sort((a, b) => a.displayOrder - b.displayOrder);
+      return saveToCache(cacheKey, list, 120000);
     }
 
     try {
@@ -338,9 +516,9 @@ export class GoogleSheetsService {
       });
 
       const rows = res.data.values || [];
-      if (rows.length === 0) return [...globalMemoryDb.units];
+      if (rows.length === 0) return saveToCache(cacheKey, [...globalMemoryDb.units], 120000);
 
-      return rows.map((r: (string | number | boolean | null | undefined)[]) => ({
+      const units = rows.map((r: (string | number | boolean | null | undefined)[]) => ({
         unitId: String(r[0] || ''),
         unitCode: String(r[1] || ''),
         unitName: String(r[2] || ''),
@@ -359,12 +537,15 @@ export class GoogleSheetsService {
         createdAt: String(r[15] || ''),
         updatedAt: String(r[16] || ''),
       })).filter((u: Unit) => u.status !== 'inactive').sort((a: Unit, b: Unit) => a.displayOrder - b.displayOrder);
+
+      return saveToCache(cacheKey, units, 120000);
     } catch {
-      return [...globalMemoryDb.units];
+      return saveToCache(cacheKey, [...globalMemoryDb.units], 60000);
     }
   }
 
   static async saveUnit(unit: Partial<Unit>): Promise<Unit> {
+    invalidateSheetCache();
     const existingIdx = globalMemoryDb.units.findIndex((u) => u.unitId === unit.unitId);
     const updated: Unit = {
       ...(existingIdx > -1 ? globalMemoryDb.units[existingIdx] : initialUnits[0]),
@@ -383,6 +564,7 @@ export class GoogleSheetsService {
   }
 
   static async deleteUnit(unitId: string): Promise<boolean> {
+    invalidateSheetCache();
     const idx = globalMemoryDb.units.findIndex((u) => u.unitId === unitId);
     if (idx > -1) {
       globalMemoryDb.units[idx].status = 'inactive';
@@ -393,17 +575,28 @@ export class GoogleSheetsService {
 
   // --- Categories ---
   static async getCategories(): Promise<UnitCategory[]> {
-    return [...globalMemoryDb.categories].sort((a, b) => a.displayOrder - b.displayOrder);
+    const cacheKey = 'categories_all';
+    const cached = getFromCache<UnitCategory[]>(cacheKey);
+    if (cached) return cached;
+
+    const list = [...globalMemoryDb.categories].sort((a, b) => a.displayOrder - b.displayOrder);
+    return saveToCache(cacheKey, list, 300000);
   }
 
   // --- Unit Content ---
   static async getUnitContent(unitId?: string): Promise<UnitContent[]> {
+    const cacheKey = `unit_content_${unitId || 'all'}`;
+    const cached = getFromCache<UnitContent[]>(cacheKey);
+    if (cached) return cached;
+
     let items = [...globalMemoryDb.content];
     if (unitId) items = items.filter((c) => c.unitId === unitId);
-    return items.sort((a, b) => a.displayOrder - b.displayOrder);
+    const result = items.sort((a, b) => a.displayOrder - b.displayOrder);
+    return saveToCache(cacheKey, result, 120000);
   }
 
   static async saveUnitContent(data: Partial<UnitContent>): Promise<UnitContent> {
+    invalidateSheetCache();
     const id = data.contentId || `CNT_${Date.now()}`;
     const record: UnitContent = {
       contentId: id,
@@ -426,6 +619,7 @@ export class GoogleSheetsService {
   }
 
   static async deleteUnitContent(contentId: string): Promise<boolean> {
+    invalidateSheetCache();
     globalMemoryDb.content = globalMemoryDb.content.filter((c) => c.contentId !== contentId);
     await this.logAudit('DELETE_UNIT_CONTENT', 'ADMIN', 'SUCCESS', `Padam kandungan ID ${contentId}`);
     return true;
@@ -433,12 +627,18 @@ export class GoogleSheetsService {
 
   // --- Employees ---
   static async getEmployees(unitId?: string): Promise<Employee[]> {
+    const cacheKey = `employees_${unitId || 'all'}`;
+    const cached = getFromCache<Employee[]>(cacheKey);
+    if (cached) return cached;
+
     let list = [...globalMemoryDb.employees].filter((e) => e.status !== 'inactive');
     if (unitId) list = list.filter((e) => e.unitId === unitId);
-    return list.sort((a, b) => a.displayOrder - b.displayOrder);
+    const result = list.sort((a, b) => a.displayOrder - b.displayOrder);
+    return saveToCache(cacheKey, result, 120000);
   }
 
   static async saveEmployee(emp: Partial<Employee>): Promise<Employee> {
+    invalidateSheetCache();
     const id = emp.employeeId || `EMP_${Date.now()}`;
     const record: Employee = {
       employeeId: id,
@@ -464,6 +664,7 @@ export class GoogleSheetsService {
   }
 
   static async deleteEmployee(employeeId: string): Promise<boolean> {
+    invalidateSheetCache();
     const idx = globalMemoryDb.employees.findIndex((e) => e.employeeId === employeeId);
     if (idx > -1) globalMemoryDb.employees[idx].status = 'inactive';
     await this.logAudit('DELETE_EMPLOYEE', 'ADMIN', 'SUCCESS', `Nyahaktifkan pegawai ID: ${employeeId}`);
@@ -472,12 +673,18 @@ export class GoogleSheetsService {
 
   // --- Documents ---
   static async getDocuments(unitId?: string): Promise<DocumentRecord[]> {
+    const cacheKey = `documents_${unitId || 'all'}`;
+    const cached = getFromCache<DocumentRecord[]>(cacheKey);
+    if (cached) return cached;
+
     let list = [...globalMemoryDb.documents].filter((d) => d.status !== 'inactive');
     if (unitId) list = list.filter((d) => d.unitId === unitId);
-    return list.sort((a, b) => a.displayOrder - b.displayOrder);
+    const result = list.sort((a, b) => a.displayOrder - b.displayOrder);
+    return saveToCache(cacheKey, result, 120000);
   }
 
   static async saveDocument(doc: Partial<DocumentRecord>): Promise<DocumentRecord> {
+    invalidateSheetCache();
     const id = doc.documentId || `DOC_${Date.now()}`;
     const fileId = doc.fileId || '';
     const record: DocumentRecord = {
@@ -508,6 +715,7 @@ export class GoogleSheetsService {
   }
 
   static async deleteDocument(docId: string): Promise<boolean> {
+    invalidateSheetCache();
     const idx = globalMemoryDb.documents.findIndex((d) => d.documentId === docId);
     if (idx > -1) globalMemoryDb.documents[idx].status = 'inactive';
     await this.logAudit('DELETE_DOCUMENT', 'ADMIN', 'SUCCESS', `Padam dokumen ID: ${docId}`);
@@ -516,7 +724,12 @@ export class GoogleSheetsService {
 
   // --- Quick Access ---
   static async getQuickAccess(): Promise<QuickAccessService[]> {
-    return [...globalMemoryDb.quickAccess].sort((a, b) => a.order - b.order);
+    const cacheKey = 'quick_access_all';
+    const cached = getFromCache<QuickAccessService[]>(cacheKey);
+    if (cached) return cached;
+
+    const list = [...globalMemoryDb.quickAccess].sort((a, b) => a.order - b.order);
+    return saveToCache(cacheKey, list, 300000);
   }
 
   // --- System Info & Audit Logs ---

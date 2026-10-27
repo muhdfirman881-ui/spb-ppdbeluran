@@ -5,17 +5,44 @@ import {
   InitialPortalData,
   UnitPortalData,
   DocumentRecord,
+  Announcement,
 } from '@/types';
+import dynamic from 'next/dynamic';
 import { Navbar } from './Navbar';
 import { HeroCarousel } from './HeroCarousel';
+import { NewsTicker } from './NewsTicker';
+import { SectorStatsSection } from './SectorStatsSection';
 import { QuickAccessSection } from './QuickAccessSection';
 import { AnnouncementsSection } from './AnnouncementsSection';
 import { UnitsSection } from './UnitsSection';
-import { UnitDetailView } from './UnitDetailView';
-import { DocumentPreviewModal } from './DocumentPreviewModal';
-import { AdminLoginModal } from './AdminLoginModal';
+import { ScrollProgressAndTop } from './ScrollProgressAndTop';
 import { Footer } from './Footer';
 import { Loader2 } from 'lucide-react';
+
+const UnitDetailView = dynamic(
+  () => import('./UnitDetailView').then((m) => m.UnitDetailView),
+  {
+    loading: () => (
+      <div className="flex flex-col items-center justify-center py-32 space-y-4">
+        <Loader2 className="w-10 h-10 animate-spin text-gov-gold-500" />
+        <p className="text-sm font-semibold text-slate-500 dark:text-slate-400">
+          Memuatkan maklumat unit sektor...
+        </p>
+      </div>
+    ),
+    ssr: false,
+  }
+);
+
+const DocumentPreviewModal = dynamic(
+  () => import('./DocumentPreviewModal').then((m) => m.DocumentPreviewModal),
+  { ssr: false }
+);
+
+const AdminLoginModal = dynamic(
+  () => import('./AdminLoginModal').then((m) => m.AdminLoginModal),
+  { ssr: false }
+);
 
 interface PortalHomeProps {
   initialData: InitialPortalData;
@@ -47,9 +74,15 @@ export const PortalHome: React.FC<PortalHomeProps> = ({ initialData }) => {
     const params = new URLSearchParams(window.location.search);
     const unitParam = params.get('unit');
     if (unitParam) {
+      const targetUnit = data.unitRegistry.find((u) => u.unitId === unitParam);
+      if (targetUnit?.externalLink) {
+        window.history.replaceState({}, '', window.location.pathname);
+        window.open(targetUnit.externalLink, '_blank', 'noopener,noreferrer');
+        return;
+      }
       handleSelectUnit(unitParam);
     }
-  }, []);
+  }, [data.unitRegistry]);
 
   const handleSelectUnit = async (unitId: string | null) => {
     if (!unitId) {
@@ -57,6 +90,13 @@ export const PortalHome: React.FC<PortalHomeProps> = ({ initialData }) => {
       setActiveUnitData(null);
       window.history.pushState({}, '', window.location.pathname);
       window.scrollTo({ top: 0, behavior: 'smooth' });
+      return;
+    }
+
+    // Auto open external link if unit has external portal (e.g. USTP, Sains, Matematik)
+    const targetUnit = data.unitRegistry.find((u) => u.unitId === unitId);
+    if (targetUnit?.externalLink) {
+      window.open(targetUnit.externalLink, '_blank', 'noopener,noreferrer');
       return;
     }
 
@@ -78,12 +118,20 @@ export const PortalHome: React.FC<PortalHomeProps> = ({ initialData }) => {
     }
   };
 
+  const handleTickerSelect = (announcement: Announcement) => {
+    const el = document.getElementById('hebahan');
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
+
   return (
-    <div className="min-h-screen flex flex-col bg-white dark:bg-gov-navy-950 text-slate-800 dark:text-slate-100">
+    <div className="min-h-screen flex flex-col bg-white dark:bg-gov-navy-950 text-slate-800 dark:text-slate-100 transition-colors">
       {/* Sovereign Navbar */}
       <Navbar
         meta={data.meta}
         units={data.unitRegistry}
+        categories={data.navigationData.categories}
         activeUnitId={activeUnitId}
         onSelectUnit={handleSelectUnit}
         onOpenLoginModal={() => setIsLoginModalOpen(true)}
@@ -110,6 +158,15 @@ export const PortalHome: React.FC<PortalHomeProps> = ({ initialData }) => {
             {/* Hero Slider */}
             <HeroCarousel slides={data.heroAlbum} />
 
+            {/* Breaking News Ticker */}
+            <NewsTicker
+              announcements={data.announcements}
+              onSelectAnnouncement={handleTickerSelect}
+            />
+
+            {/* Sektor Impact Metrics & Highlights */}
+            <SectorStatsSection />
+
             {/* Quick Access Digital Services */}
             <QuickAccessSection
               services={data.quickAccess}
@@ -132,24 +189,31 @@ export const PortalHome: React.FC<PortalHomeProps> = ({ initialData }) => {
         )}
       </main>
 
-      {/* Sovereign Government Footer */}
+      {/* Sovereign Government Footer with Interactive Map */}
       <Footer
         meta={data.meta}
         onOpenLoginModal={() => setIsLoginModalOpen(true)}
       />
 
+      {/* Circular Scroll Progress & Back To Top */}
+      <ScrollProgressAndTop />
+
       {/* Document In-App Preview Modal */}
-      <DocumentPreviewModal
-        document={previewDoc}
-        onClose={() => setPreviewDoc(null)}
-      />
+      {previewDoc && (
+        <DocumentPreviewModal
+          document={previewDoc}
+          onClose={() => setPreviewDoc(null)}
+        />
+      )}
 
       {/* Admin Login Dialog */}
-      <AdminLoginModal
-        isOpen={isLoginModalOpen}
-        onClose={() => setIsLoginModalOpen(false)}
-        onLoginSuccess={() => setIsAdminLoggedIn(true)}
-      />
+      {isLoginModalOpen && (
+        <AdminLoginModal
+          isOpen={isLoginModalOpen}
+          onClose={() => setIsLoginModalOpen(false)}
+          onLoginSuccess={() => setIsAdminLoggedIn(true)}
+        />
+      )}
     </div>
   );
 };

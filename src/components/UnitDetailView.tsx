@@ -9,13 +9,12 @@ import {
   Eye,
   Download,
   Users,
-  CheckCircle2,
-  Briefcase,
-  Mail,
-  Phone,
+  Camera,
   ExternalLink,
   FolderOpen,
+  Image as ImageIcon,
 } from 'lucide-react';
+import { getOptimizedImageUrl } from '@/lib/config';
 
 interface UnitDetailViewProps {
   unitData: UnitPortalData;
@@ -28,10 +27,17 @@ export const UnitDetailView: React.FC<UnitDetailViewProps> = ({
   onBack,
   onPreviewDocument,
 }) => {
-  const { unit, responsibilities, services, customContent, employees, documents } = unitData;
+  const { unit, documents } = unitData;
 
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedDocCategory, setSelectedDocCategory] = useState('Semua');
+
+  // Team Photo URL detection
+  const rawPhoto =
+    unit.teamPhotoUrl ||
+    (unit.bannerFileId ? `https://lh3.googleusercontent.com/d/${unit.bannerFileId}` : '') ||
+    (unit.logoFileId ? `https://lh3.googleusercontent.com/d/${unit.logoFileId}` : '');
+  const teamPhotoSource = getOptimizedImageUrl(rawPhoto);
 
   // Extract unique document categories
   const docCategories = useMemo(() => {
@@ -56,13 +62,13 @@ export const UnitDetailView: React.FC<UnitDetailViewProps> = ({
   }, [documents, selectedDocCategory, searchQuery]);
 
   return (
-    <div className="py-8 sm:py-12 bg-slate-50 dark:bg-gov-navy-950 min-h-screen">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10">
+    <div className="py-8 sm:py-12 bg-slate-50 dark:bg-gov-navy-950 min-h-screen transition-colors">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8 sm:space-y-10">
         {/* Back Navigation Bar */}
         <div className="flex items-center justify-between">
           <button
             onClick={onBack}
-            className="inline-flex items-center space-x-2 px-4 py-2 rounded-xl bg-white dark:bg-gov-navy-900 border border-slate-200 dark:border-slate-800 text-sm font-semibold text-slate-700 dark:text-slate-200 hover:text-gov-gold-600 dark:hover:text-gov-gold-400 hover:border-gov-gold-500/50 shadow-xs transition-all"
+            className="inline-flex items-center space-x-2 px-4 py-2.5 rounded-xl bg-white dark:bg-gov-navy-900 border border-slate-200 dark:border-slate-800 text-sm font-bold text-slate-700 dark:text-slate-200 hover:text-gov-gold-600 dark:hover:text-gov-gold-400 hover:border-gov-gold-500/50 shadow-xs transition-all"
           >
             <ArrowLeft className="w-4 h-4" />
             <span>Kembali ke Senarai Unit</span>
@@ -73,7 +79,7 @@ export const UnitDetailView: React.FC<UnitDetailViewProps> = ({
               href={unit.externalLink}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center space-x-2 px-4 py-2 rounded-xl bg-gov-gold-500 hover:bg-gov-gold-600 text-gov-navy-950 text-xs sm:text-sm font-bold shadow-xs transition-all"
+              className="inline-flex items-center space-x-2 px-4 py-2.5 rounded-xl bg-gov-gold-500 hover:bg-gov-gold-600 text-gov-navy-950 text-xs sm:text-sm font-bold shadow-xs transition-all"
             >
               <span>Portal Luaran Unit</span>
               <ExternalLink className="w-4 h-4" />
@@ -84,10 +90,10 @@ export const UnitDetailView: React.FC<UnitDetailViewProps> = ({
         {/* Unit Hero Banner */}
         <div className="bg-white dark:bg-gov-navy-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-6 sm:p-10 shadow-sm relative overflow-hidden">
           <div className="relative z-10 max-w-4xl">
-            <span className="inline-block px-3 py-1 rounded-full text-xs font-semibold tracking-wider uppercase bg-gov-gold-500/15 text-gov-gold-600 dark:text-gov-gold-400 mb-3">
+            <span className="inline-block px-3 py-1 rounded-full text-xs font-bold tracking-wider uppercase bg-gov-gold-500/15 text-gov-gold-600 dark:text-gov-gold-400 mb-3 border border-gov-gold-500/30">
               {unit.unitCode} &bull; Sektor Pembelajaran
             </span>
-            <h1 className="font-serif text-3xl sm:text-5xl font-bold text-gov-navy-900 dark:text-white tracking-tight leading-tight">
+            <h1 className="font-serif text-3xl sm:text-5xl font-extrabold text-gov-navy-900 dark:text-white tracking-tight leading-tight">
               {unit.title || unit.unitName}
             </h1>
             <p className="mt-3 text-base sm:text-lg text-slate-600 dark:text-slate-300 font-medium leading-relaxed">
@@ -101,104 +107,61 @@ export const UnitDetailView: React.FC<UnitDetailViewProps> = ({
           </div>
         </div>
 
-        {/* Roles & Services Dual Columns */}
-        {(responsibilities.length > 0 || services.length > 0) && (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            {/* Responsibilities */}
-            {responsibilities.length > 0 && (
-              <div className="bg-white dark:bg-gov-navy-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 sm:p-8 shadow-xs">
-                <div className="flex items-center space-x-2.5 text-gov-navy-900 dark:text-white font-bold text-lg mb-6">
-                  <CheckCircle2 className="w-5 h-5 text-gov-gold-500" />
-                  <span>Fungsi & Peranan Utama</span>
-                </div>
-                <ul className="space-y-3.5">
-                  {responsibilities.map((resp, idx) => (
-                    <li key={idx} className="flex items-start space-x-3 text-sm text-slate-700 dark:text-slate-300">
-                      <span className="w-2 h-2 rounded-full bg-gov-gold-500 mt-2 flex-shrink-0"></span>
-                      <span className="leading-relaxed">{resp}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
-
-            {/* Services */}
-            {services.length > 0 && (
-              <div className="bg-white dark:bg-gov-navy-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 sm:p-8 shadow-xs">
-                <div className="flex items-center space-x-2.5 text-gov-navy-900 dark:text-white font-bold text-lg mb-6">
-                  <Briefcase className="w-5 h-5 text-gov-gold-500" />
-                  <span>Perkhidmatan & Khidmat Bimbingan</span>
-                </div>
-                <ul className="space-y-3.5">
-                  {services.map((serv, idx) => (
-                    <li key={idx} className="flex items-start space-x-3 text-sm text-slate-700 dark:text-slate-300">
-                      <span className="w-2 h-2 rounded-full bg-gov-gold-500 mt-2 flex-shrink-0"></span>
-                      <span className="leading-relaxed">{serv}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* Officers Directory */}
-        {employees.length > 0 && (
-          <div className="bg-white dark:bg-gov-navy-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 sm:p-8 shadow-xs">
-            <div className="flex items-center space-x-2.5 text-gov-navy-900 dark:text-white font-bold text-lg mb-6">
-              <Users className="w-5 h-5 text-gov-gold-500" />
-              <span>Pegawai & Anggota Unit</span>
+        {/* Unit Team Photo Showcase (Tempat Gambar Tenaga Unit) */}
+        <div className="bg-white dark:bg-gov-navy-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-6 sm:p-8 shadow-xs space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 dark:border-slate-800 pb-4">
+            <div className="flex items-center space-x-2.5 text-gov-navy-900 dark:text-white font-bold text-lg">
+              <Camera className="w-5 h-5 text-gov-gold-500" />
+              <span>Gambar Tenaga Kerja Unit</span>
             </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {employees.map((emp) => (
-                <div
-                  key={emp.employeeId}
-                  className="bg-slate-50 dark:bg-gov-navy-950 p-5 rounded-xl border border-slate-200 dark:border-slate-800 flex items-start space-x-4"
-                >
-                  <div className="w-14 h-14 rounded-full bg-gov-gold-500/20 text-gov-gold-600 dark:text-gov-gold-400 flex items-center justify-center font-bold text-lg flex-shrink-0 border border-gov-gold-500/30 overflow-hidden">
-                    {emp.photoFileId ? (
-                      <img
-                        src={`https://lh3.googleusercontent.com/d/${emp.photoFileId}`}
-                        alt={emp.name}
-                        className="w-full h-full object-cover"
-                        onError={(e) => {
-                          (e.target as HTMLElement).style.display = 'none';
-                        }}
-                      />
-                    ) : (
-                      emp.name.charAt(0)
-                    )}
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <h4 className="font-bold text-sm text-slate-900 dark:text-white truncate">
-                      {emp.name}
-                    </h4>
-                    <p className="text-xs text-gov-gold-600 dark:text-gov-gold-400 font-medium mt-0.5">
-                      {emp.position}
-                    </p>
-                    {emp.email && (
-                      <div className="flex items-center space-x-1.5 text-xs text-slate-500 dark:text-slate-400 mt-2 truncate">
-                        <Mail className="w-3.5 h-3.5 flex-shrink-0" />
-                        <span className="truncate">{emp.email}</span>
-                      </div>
-                    )}
-                    {emp.phone && (
-                      <div className="flex items-center space-x-1.5 text-xs text-slate-500 dark:text-slate-400 mt-1">
-                        <Phone className="w-3.5 h-3.5 flex-shrink-0" />
-                        <span>{emp.phone}</span>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
+            <span className="text-xs text-slate-500 dark:text-slate-400 font-medium">
+              Warga & Barisan Pegawai {unit.unitName}
+            </span>
           </div>
-        )}
+
+          {/* Photo Display Card */}
+          {teamPhotoSource ? (
+            <div className="relative rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-800 bg-slate-900 max-h-[500px] group">
+              <img
+                src={teamPhotoSource}
+                alt={`Gambar Tenaga Kerja ${unit.unitName}`}
+                referrerPolicy="no-referrer"
+                loading="lazy"
+                decoding="async"
+                className="w-full h-full object-cover max-h-[500px] group-hover:scale-[1.02] transition-transform duration-500"
+                onError={(e) => {
+                  (e.target as HTMLElement).style.display = 'none';
+                }}
+              />
+              <div className="absolute inset-x-0 bottom-0 p-4 bg-gradient-to-t from-black/85 via-black/40 to-transparent flex items-center justify-between">
+                <span className="text-xs font-semibold text-white drop-shadow">
+                  Foto Rasmi Tenaga Kerja {unit.unitName}
+                </span>
+                <span className="text-[11px] px-2.5 py-0.5 rounded-full bg-gov-gold-500/90 text-gov-navy-950 font-bold">
+                  Sektor Pembelajaran
+                </span>
+              </div>
+            </div>
+          ) : (
+            <div className="relative rounded-2xl border-2 border-dashed border-slate-200 dark:border-slate-800 p-8 sm:p-12 text-center bg-slate-50/60 dark:bg-gov-navy-950/40">
+              <div className="w-16 h-16 rounded-2xl bg-gov-gold-500/10 flex items-center justify-center mx-auto mb-3 text-gov-gold-500">
+                <Users className="w-8 h-8" />
+              </div>
+              <h3 className="font-bold text-base text-slate-800 dark:text-white">
+                Foto Rasmi Tenaga Kerja {unit.unitName}
+              </h3>
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-1.5 max-w-md mx-auto leading-relaxed">
+                Gambar barisan tenaga kerja dan pegawai bagi unit ini boleh dimuat naik dan dikemaskini melalui Panel Pentadbir.
+              </p>
+            </div>
+          )}
+        </div>
+
+
 
         {/* Document Repository */}
         {unit.hasDocuments && (
-          <div className="bg-white dark:bg-gov-navy-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 sm:p-8 shadow-xs space-y-6">
+          <div className="bg-white dark:bg-gov-navy-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-6 sm:p-8 shadow-xs space-y-6">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div className="flex items-center space-x-2.5 text-gov-navy-900 dark:text-white font-bold text-lg">
                 <FolderOpen className="w-5 h-5 text-gov-gold-500" />
@@ -248,45 +211,37 @@ export const UnitDetailView: React.FC<UnitDetailViewProps> = ({
                 {filteredDocuments.map((doc) => (
                   <div
                     key={doc.documentId}
-                    className="p-5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-gov-navy-950/60 hover:bg-white dark:hover:bg-gov-navy-950 transition-all flex flex-col justify-between"
+                    className="p-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-gov-navy-950/60 hover:bg-white dark:hover:bg-gov-navy-900 transition-colors flex items-center justify-between"
                   >
-                    <div>
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="px-2.5 py-0.5 rounded-md bg-gov-gold-500/10 text-gov-gold-600 dark:text-gov-gold-400 font-semibold text-xs">
-                          {doc.category || 'Dokumen'}
-                        </span>
-                        <span className="text-xs text-slate-400 font-medium">{doc.fileSize}</span>
+                    <div className="flex items-start space-x-3 min-w-0">
+                      <div className="p-2 rounded-lg bg-gov-gold-500/10 text-gov-gold-500 flex-shrink-0 mt-0.5">
+                        <FileText className="w-5 h-5" />
                       </div>
-                      <h4 className="font-bold text-sm text-slate-900 dark:text-white leading-snug line-clamp-2">
-                        {doc.title}
-                      </h4>
-                      {doc.description && (
-                        <p className="mt-1 text-xs text-slate-500 dark:text-slate-400 line-clamp-2">
-                          {doc.description}
+                      <div className="min-w-0">
+                        <h5 className="font-bold text-sm text-slate-900 dark:text-white truncate">
+                          {doc.title}
+                        </h5>
+                        <p className="text-xs text-slate-500 dark:text-slate-400 truncate mt-0.5">
+                          {doc.fileName} &bull; {doc.fileSize}
                         </p>
-                      )}
+                      </div>
                     </div>
 
-                    <div className="mt-4 pt-3 border-t border-slate-200/60 dark:border-slate-800/60 flex items-center justify-end space-x-2">
+                    <div className="flex items-center space-x-1.5 flex-shrink-0 ml-3">
                       <button
                         onClick={() => onPreviewDocument(doc)}
-                        className="inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-lg border border-slate-300 dark:border-slate-700 hover:border-gov-gold-500 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:text-gov-gold-600 dark:hover:text-gov-gold-400 transition-colors"
+                        className="p-2 rounded-lg text-slate-500 hover:text-gov-gold-500 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                        title="Pratonton"
                       >
-                        <Eye className="w-3.5 h-3.5" />
-                        <span>Pratonton</span>
+                        <Eye className="w-4 h-4" />
                       </button>
-
-                      {doc.downloadUrl && (
-                        <a
-                          href={doc.downloadUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-lg bg-gov-gold-500 hover:bg-gov-gold-600 text-gov-navy-950 text-xs font-bold transition-colors"
-                        >
-                          <Download className="w-3.5 h-3.5" />
-                          <span>Muat Turun</span>
-                        </a>
-                      )}
+                      <a
+                        href={`/api/files/${doc.fileId}?download=true`}
+                        className="p-2 rounded-lg text-slate-500 hover:text-gov-gold-500 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                        title="Muat Turun"
+                      >
+                        <Download className="w-4 h-4" />
+                      </a>
                     </div>
                   </div>
                 ))}

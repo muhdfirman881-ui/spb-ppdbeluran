@@ -6,8 +6,9 @@ export const metadata: Metadata = {
   description: 'Portal Rasmi Sektor Pembelajaran Pejabat Pendidikan Daerah Beluran, Sabah. Mengurus kurikulum, bimbingan pedagogi SISC+, dan repositori dokumen unit.',
   keywords: ['E-SPb', 'PPD Beluran', 'Sektor Pembelajaran', 'SISC+', 'Sabah', 'KPM', 'Pendidikan'],
   authors: [{ name: 'Sektor Pembelajaran PPD Beluran' }],
+  referrer: 'no-referrer',
   icons: {
-    icon: 'https://lh3.googleusercontent.com/d/1uM0wo3a7aAZKBZn6RHkFjF8PtyXwGSQL',
+    icon: '/api/images/1uM0wo3a7aAZKBZn6RHkFjF8PtyXwGSQL',
   },
 };
 
@@ -17,8 +18,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="ms" suppressHydrationWarning>
+    <html lang="ms" className="dark" suppressHydrationWarning>
       <head>
+        <meta name="referrer" content="no-referrer" />
+        <link rel="dns-prefetch" href="https://fonts.googleapis.com" />
+        <link rel="dns-prefetch" href="https://fonts.gstatic.com" />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link
@@ -30,10 +34,10 @@ export default function RootLayout({
             __html: `
               try {
                 const theme = localStorage.getItem('espb_theme');
-                if (theme === 'dark' || (!theme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-                  document.documentElement.classList.add('dark');
-                } else {
+                if (theme === 'light') {
                   document.documentElement.classList.remove('dark');
+                } else {
+                  document.documentElement.classList.add('dark');
                 }
               } catch (_) {}
             `,

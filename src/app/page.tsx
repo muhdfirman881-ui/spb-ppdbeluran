@@ -3,16 +3,12 @@ import { getPublicPortalMeta } from '@/lib/config';
 import { PortalHome } from '@/components/PortalHome';
 import { InitialPortalData } from '@/types';
 
-export const dynamic = 'force-dynamic';
+// Incremental Static Regeneration (ISR) - cached at CDN/server edge, revalidated in background
+export const revalidate = 180;
 
 export default async function HomePage() {
-  const [heroAlbum, announcements, units, categories, quickAccess] = await Promise.all([
-    GoogleSheetsService.getHeroAlbum(),
-    GoogleSheetsService.getAnnouncements(6),
-    GoogleSheetsService.getUnits(),
-    GoogleSheetsService.getCategories(),
-    GoogleSheetsService.getQuickAccess(),
-  ]);
+  const { heroAlbum, announcements, units, categories, quickAccess } =
+    await GoogleSheetsService.getBatchPortalData();
 
   const unitsHierarchy = categories.map((cat) => ({
     category: cat,

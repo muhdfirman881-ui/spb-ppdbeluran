@@ -41,10 +41,26 @@ export function getPublicPortalMeta() {
     contactEmail: AppConfig.CONTACT_EMAIL,
     contactPhone: AppConfig.CONTACT_PHONE,
     address: AppConfig.ADDRESS,
-    espbLogoUrl: AppConfig.LOGO_URL,
-    jataNegaraUrl: AppConfig.JATA_NEGARA_URL,
+    espbLogoUrl: getOptimizedImageUrl(AppConfig.LOGO_URL),
+    jataNegaraUrl: getOptimizedImageUrl(AppConfig.JATA_NEGARA_URL),
     eKeberadaanUrl: AppConfig.E_KEBERADAAN_URL,
     cartaOrganisasiUrl: AppConfig.CARTA_ORGANISASI_URL,
     currentYear: new Date().getFullYear(),
   };
+}
+
+export function getOptimizedImageUrl(url?: string | null): string {
+  if (!url) return '';
+  const trimmed = url.trim();
+  if (trimmed.startsWith('/') || trimmed.startsWith('data:')) return trimmed;
+
+  // Extract Google Drive / UserContent fileId
+  const driveMatch = trimmed.match(
+    /(?:lh3\.googleusercontent\.com\/d\/|drive\.google\.com\/(?:file\/d\/|uc\?(?:.*&)?id=|thumbnail\?(?:.*&)?id=))([a-zA-Z0-9_-]+)/
+  );
+  if (driveMatch && driveMatch[1]) {
+    return `/api/images/${driveMatch[1]}`;
+  }
+
+  return trimmed;
 }

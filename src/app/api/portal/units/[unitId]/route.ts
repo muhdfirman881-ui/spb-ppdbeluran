@@ -38,17 +38,24 @@ export async function GET(
       (c) => c.sectionType !== 'responsibility' && c.sectionType !== 'service' && c.status === 'active'
     );
 
-    return NextResponse.json({
-      success: true,
-      data: {
-        unit,
-        responsibilities,
-        services,
-        customContent,
-        employees,
-        documents,
+    return NextResponse.json(
+      {
+        success: true,
+        data: {
+          unit,
+          responsibilities,
+          services,
+          customContent,
+          employees,
+          documents,
+        },
       },
-    });
+      {
+        headers: {
+          'Cache-Control': 'public, s-maxage=120, stale-while-revalidate=300',
+        },
+      }
+    );
   } catch (error: unknown) {
     return NextResponse.json(
       { success: false, error: 'Gagal memuatkan unit: ' + getErrorMessage(error) },
