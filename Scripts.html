@@ -1,0 +1,417 @@
+<script>
+/**
+ * ============================================================================
+ * E-SPb PPDB Core Client Runtime
+ * State management, Promise-based API client, Toast notifications,
+ * Dark mode, Mobile drawer, Modal controller, and Canvas Image Compressor.
+ * ============================================================================
+ */
+
+(function() {
+  'use strict';
+
+  // ==========================================
+  // STATE MANAGEMENT
+  // ==========================================
+  const state = {
+    sessionToken: window.SafeSession.getItem('espb_admin_token') || null,
+    isAdminLoggedIn: false,
+    activeHeroIndex: 0,
+    heroTimer: null,
+    heroImages: []
+  };
+
+  // ==========================================
+  // API CLIENT (Promise-based Wrapper)
+  // ==========================================
+  function apiCall(functionName, ...args) {
+    return new Promise(function(resolve, reject) {
+      if (!window.google || !google.script || !google.script.run) {
+        console.warn('Google Script runtime not found (local preview mode).');
+        reject(new Error('Google Script runtime unavailable.'));
+        return;
+      }
+
+      const runner = google.script.run
+        .withSuccessHandler(function(response) {
+          resolve(response);
+        })
+        .withFailureHandler(function(error) {
+          console.error('API Error in ' + functionName + ':', error);
+          showToast(error.message || 'Ralat komunikasi pelayan.', 'error');
+          reject(error);
+        });
+
+      if (typeof runner[functionName] !== 'function') {
+        const errMsg = 'Fungsi pelayan ' + functionName + ' tidak wujud.';
+        console.error(errMsg);
+        reject(new Error(errMsg));
+        return;
+      }
+
+      runner[functionName].apply(runner, args);
+    });
+  }
+
+  // ==========================================
+  // TOAST NOTIFICATIONS
+  // ==========================================
+  function showToast(message, type, durationMs) {
+    let container = document.getElementById('toastContainer');
+    if (!container) {
+      container = document.createElement('div');
+      container.id = 'toastContainer';
+      container.className = 'toast-container';
+      document.body.appendChild(container);
+    }
+
+    const toast = document.createElement('div');
+    toast.className = 'toast toast-' + (type || 'info');
+    toast.setAttribute('role', 'alert');
+
+    let iconSvg = getIconSvg('check');
+    if (type === 'error') iconSvg = getIconSvg('alert-circle');
+    else if (type === 'warning') iconSvg = getIconSvg('alert-triangle');
+
+    toast.innerHTML = `
+      <div style="flex-shrink:0;">${iconSvg}</div>
+      <div style="flex-grow:1;">${escapeHtml(message)}</div>
+      <button type="button" onclick="this.parentElement.remove()" style="opacity:0.6;padding:4px;cursor:pointer;background:none;border:none;" aria-label="Tutup">&times;</button>
+    `;
+
+    container.appendChild(toast);
+
+    setTimeout(function() {
+      toast.style.opacity = '0';
+      toast.style.transform = 'translateX(20px)';
+      toast.style.transition = 'all 200ms ease';
+      setTimeout(function() { toast.remove(); }, 200);
+    }, durationMs || 4500);
+  }
+
+  // ==========================================
+  // THEME (DARK MODE) CONTROLLER
+  // ==========================================
+  function initTheme() {
+    try {
+      const saved = window.SafeLocal.getItem('espb_theme');
+      const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+      if (saved === 'dark' || (!saved && prefersDark)) {
+        if (document.body) document.body.classList.add('dark-mode');
+        if (document.documentElement) document.documentElement.classList.add('dark-mode');
+      } else {
+        if (document.body) document.body.classList.remove('dark-mode');
+        if (document.documentElement) document.documentElement.classList.remove('dark-mode');
+      }
+    } catch(e) {}
+  }
+
+  function toggleTheme() {
+    if (typeof window.toggleDarkMode === 'function' && window.toggleDarkMode !== toggleTheme) {
+      return window.toggleDarkMode();
+    }
+    const isDark = document.body ? document.body.classList.toggle('dark-mode') : false;
+    if (document.documentElement) {
+      if (isDark) document.documentElement.classList.add('dark-mode');
+      else document.documentElement.classList.remove('dark-mode');
+    }
+    try {
+      window.SafeLocal.setItem('espb_theme', isDark ? 'dark' : 'light');
+    } catch (e) {}
+    showToast(isDark ? 'Mod gelap diaktifkan.' : 'Mod terang diaktifkan.', 'info', 2000);
+    return isDark;
+  }
+
+  // ==========================================
+  // MOBILE NAVIGATION DRAWER
+  // ==========================================
+  function openMobileMenu() {
+    const drawer = document.getElementById('mobileDrawer');
+    if (drawer) {
+      drawer.classList.add('open');
+      drawer.setAttribute('aria-hidden', 'false');
+    }
+  }
+
+  function closeMobileMenu() {
+    const drawer = document.getElementById('mobileDrawer');
+    if (drawer) {
+      drawer.classList.remove('open');
+      drawer.setAttribute('aria-hidden', 'true');
+    }
+  }
+
+  // ==========================================
+  // MODAL CONTROLLER
+  // ==========================================
+  function openModal(modalId) {
+    const modal = document.getElementById(modalId);
+    if (modal) {
+      modal.classList.add('open');
+      document.body.style.overflow = 'hidden';
+      const focusable = modal.querySelector('input, button:not([disabled]), select, textarea');
+      if (focusable) focusable.focus();
+    }
+  }
+
+  function cleanupDocPreview() {
+    const img = document.getElementById('docPreviewImage');
+    if (img) img.src = '';
+    const pdfCont = document.getElementById('docPreviewPdfContainer');
+    if (pdfCont) pdfCont.innerHTML = '';
+    const badge = document.getElementById('docPreviewPageCount');
+    if (badge) { badge.textContent = ''; badge.style.display = 'none'; }
+    const other = document.getElementById('docPreviewOtherType');
+    if (other) other.style.display = 'none';
+  }
+
+  function closeModal(modalId) {
+    const modal = document.getElementById(modalId);
+    if (modal) {
+      modal.classList.remove('open');
+      document.body.style.overflow = '';
+      if (modalId === 'docPreviewModal') {
+        cleanupDocPreview();
+      }
+    }
+  }
+
+  // Close modal when clicking backdrop
+  document.addEventListener('click', function(e) {
+    if (e.target.classList && e.target.classList.contains('modal-backdrop')) {
+      e.target.classList.remove('open');
+      document.body.style.overflow = '';
+      cleanupDocPreview();
+    }
+  });
+
+  // Close on Escape key
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+      document.querySelectorAll('.modal-backdrop.open').forEach(function(m) {
+        m.classList.remove('open');
+      });
+      closeMobileMenu();
+      document.body.style.overflow = '';
+      cleanupDocPreview();
+    }
+  });
+
+  // ==========================================
+  // CLIENT-SIDE IMAGE COMPRESSOR (HTML5 Canvas)
+  // Reduces heavy photo uploads from 15MB down to ~300KB
+  // ==========================================
+  function compressImageFile(file, maxWidth, maxHeight, quality) {
+    return new Promise(function(resolve, reject) {
+      if (!file || !file.type.match(/image.*/)) {
+        reject(new Error('Sila pilih fail imej yang sah.'));
+        return;
+      }
+
+      const maxW = maxWidth || 1600;
+      const maxH = maxHeight || 1200;
+      const q = quality || 0.85;
+
+      const reader = new FileReader();
+      reader.onload = function(readerEvent) {
+        const image = new Image();
+        image.onload = function() {
+          let w = image.width;
+          let h = image.height;
+
+          if (w > maxW || h > maxH) {
+            if (w / maxW > h / maxH) {
+              h = Math.round((h * maxW) / w);
+              w = maxW;
+            } else {
+              w = Math.round((w * maxH) / h);
+              h = maxH;
+            }
+          }
+
+          const canvas = document.createElement('canvas');
+          canvas.width = w;
+          canvas.height = h;
+
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(image, 0, 0, w, h);
+
+          const compressedBase64 = canvas.toDataURL('image/jpeg', q);
+          resolve({
+            data: compressedBase64,
+            contentType: 'image/jpeg',
+            fileName: file.name
+          });
+        };
+        image.onerror = function() { reject(new Error('Imej rosak atau tidak dapat diproses.')); };
+        image.src = readerEvent.target.result;
+      };
+      reader.onerror = function() { reject(new Error('Gagal membaca fail.')); };
+      reader.readAsDataURL(file);
+    });
+  }
+
+  // ==========================================
+  // SVG ICONS REGISTRY
+  // ==========================================
+  function getIconSvg(name) {
+    const icons = {
+      'users': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>',
+      'book-open': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>',
+      'globe': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>',
+      'flask': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2v7.527a2 2 0 0 1-.211.896L4.72 20.55a1 1 0 0 0 .9 1.45h12.76a1 1 0 0 0 .9-1.45l-5.069-10.127A2 2 0 0 1 14 9.527V2"/><path d="M8.5 2h7"/><path d="M7 16h10"/></svg>',
+      'calculator': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="2" width="16" height="20" rx="2"/><line x1="8" y1="6" x2="16" y2="6"/><line x1="16" y1="14" x2="16" y2="18"/><path d="M16 10h.01"/><path d="M12 10h.01"/><path d="M8 10h.01"/><path d="M12 14h.01"/><path d="M8 14h.01"/><path d="M12 18h.01"/><path d="M8 18h.01"/></svg>',
+      'landmark': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="2" y1="22" x2="22" y2="22"/><line x1="18" y1="11" x2="18" y2="18"/><line x1="14" y1="11" x2="14" y2="18"/><line x1="10" y1="11" x2="10" y2="18"/><line x1="6" y1="11" x2="6" y2="18"/><path d="M12 2L2 7h20L12 2z"/></svg>',
+      'refresh': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>',
+      'mosque': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v3"/><path d="M6 7a6 6 0 0 1 12 0v4H6V7z"/><path d="M4 11h16v10H4z"/><path d="M10 21v-4a2 2 0 0 1 4 0v4"/></svg>',
+      'accessibility': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="16" cy="4" r="1"/><path d="M19 8h-4.5a2.5 2.5 0 0 0-2.5 2.5V16"/><path d="M10 18l3-3"/><circle cx="12" cy="18" r="4"/><path d="M9 18l-3 3"/></svg>',
+      'tv': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="15" rx="2" ry="2"/><polyline points="17 2 12 7 7 2"/></svg>',
+      'folder': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>',
+      'sitemap': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="3" width="6" height="4" rx="1"/><rect x="2" y="17" width="6" height="4" rx="1"/><rect x="16" y="17" width="6" height="4" rx="1"/><path d="M12 7v5M5 12h14v5M5 12v5"/></svg>',
+      'laptop': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="2" y1="20" x2="22" y2="20"/></svg>',
+      'check': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>',
+      'alert-circle': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>',
+      'alert-triangle': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>',
+      'external-link': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>',
+      'arrow-right': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>',
+      'search': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>',
+      'download': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>',
+      'eye': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>',
+      'edit': '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>',
+      'trash': '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>',
+      'plus': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>',
+      'lock': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>'
+    };
+
+    return icons[name] || icons['folder'];
+  }
+
+  // ==========================================
+  // ESCAPE HTML HELPER
+  // ==========================================
+  function escapeHtml(text) {
+    if (!text && text !== 0) return '';
+    return String(text)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#039;');
+  }
+
+  // Build the global ESPB API object
+  const ESPB_INSTANCE = {
+    state: state,
+    apiCall: apiCall,
+    showToast: showToast,
+    toggleTheme: toggleTheme,
+    initTheme: initTheme,
+    openMobileMenu: openMobileMenu,
+    closeMobileMenu: closeMobileMenu,
+    openModal: openModal,
+    closeModal: closeModal,
+    compressImageFile: compressImageFile,
+    getIconSvg: getIconSvg,
+    escapeHtml: escapeHtml
+  };
+
+  // Expose both on window.ESPB and as standalone globals for safety
+  window.ESPB = ESPB_INSTANCE;
+  window.toggleDarkMode = toggleTheme;
+  window.openMobileMenu = openMobileMenu;
+  window.closeMobileMenu = closeMobileMenu;
+  window.openModal = openModal;
+  window.closeModal = closeModal;
+
+  window.loadBase64FallbackImage = function(imgEl, fileId, fallbackUrl) {
+    if (imgEl.dataset.fallbackTriggered) return;
+    imgEl.dataset.fallbackTriggered = 'true';
+    imgEl.onerror = function() { this.src = fallbackUrl; };
+    apiCall('getImageBase64', fileId)
+      .then(function(res) {
+        if (res && res.success) {
+          imgEl.src = res.data;
+        } else {
+          imgEl.src = fallbackUrl;
+        }
+      })
+      .catch(function() {
+        imgEl.src = fallbackUrl;
+      });
+  };
+
+  // Scroll Reveal Animations
+  function initScrollReveal() {
+    if (!window.IntersectionObserver) return;
+    const observer = new IntersectionObserver(function(entries) {
+      entries.forEach(function(entry) {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('is-visible');
+          observer.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.1, rootMargin: '0px 0px -50px 0px' });
+
+    document.querySelectorAll('.reveal-on-scroll').forEach(function(el) { observer.observe(el); });
+    
+    ESPB_INSTANCE.observeNewElements = function(container) {
+      if (!container) return;
+      container.querySelectorAll('.reveal-on-scroll').forEach(function(el) { observer.observe(el); });
+    };
+  }
+
+  document.addEventListener('DOMContentLoaded', function() {
+    try {
+        initScrollReveal();
+    } catch(e) {
+        console.warn('Scroll reveal initialization failed:', e);
+    }
+  });
+
+  // --- UI PRO MAX EXTENSIONS ---
+  function initProMaxUX() {
+    // Spotlight Effect for Cards
+    document.addEventListener('mousemove', function(e) {
+      document.querySelectorAll('.card').forEach(function(card) {
+        const rect = card.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+        card.style.setProperty('--mouse-x', `${x}px`);
+        card.style.setProperty('--mouse-y', `${y}px`);
+      });
+    });
+
+    // Ripple Effect for Buttons
+    document.addEventListener('click', function(e) {
+      const btn = e.target.closest('.btn');
+      if (!btn) return;
+      
+      const rect = btn.getBoundingClientRect();
+      const circle = document.createElement('span');
+      const diameter = Math.max(btn.clientWidth, btn.clientHeight);
+      const radius = diameter / 2;
+      
+      circle.style.width = circle.style.height = `${diameter}px`;
+      circle.style.left = `${e.clientX - rect.left - radius}px`;
+      circle.style.top = `${e.clientY - rect.top - radius}px`;
+      circle.classList.add('ripple');
+      
+      const ripple = btn.querySelector('.ripple');
+      if (ripple) ripple.remove();
+      
+      btn.appendChild(circle);
+    });
+  }
+
+  document.addEventListener('DOMContentLoaded', function() {
+    try {
+        initProMaxUX();
+    } catch(e) {
+        console.warn('Pro Max UX initialization failed:', e);
+    }
+  });
+
+  // Run initial theme check
+  initTheme();
+})();
+</script>
