@@ -246,7 +246,7 @@ export const initialQuickAccess: QuickAccessService[] = [
     title: 'Carta Organisasi',
     description: 'Struktur kepimpinan dan pegawai Sektor Pembelajaran PPD Beluran.',
     icon: 'sitemap',
-    link: 'https://drive.google.com/file/d/1ZSLgfUdeoVafSvHljagRPIXaqRpPxeP4/preview',
+    link: 'https://drive.google.com/file/d/1plKZgpVPVOWggd_LS1O9TabTHYkqeU_T/view?usp=sharing',
     external: true,
     order: 1,
   },

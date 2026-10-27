@@ -7,13 +7,21 @@ import { InitialPortalData } from '@/types';
 export const revalidate = 180;
 
 export default async function HomePage() {
-  const { heroAlbum, announcements, units, categories, quickAccess } =
-    await GoogleSheetsService.getBatchPortalData();
+  const [{ heroAlbum, announcements, units, categories, quickAccess }, settings] =
+    await Promise.all([
+      GoogleSheetsService.getBatchPortalData(),
+      GoogleSheetsService.getSettings(),
+    ]);
 
   const unitsHierarchy = categories.map((cat) => ({
     category: cat,
     units: units.filter((u) => u.categoryId === cat.categoryId),
   }));
+
+  const meta = getPublicPortalMeta();
+  if (settings.CARTA_ORGANISASI_URL) {
+    meta.cartaOrganisasiUrl = settings.CARTA_ORGANISASI_URL;
+  }
 
   const initialData: InitialPortalData = {
     heroAlbum,
@@ -25,7 +33,7 @@ export default async function HomePage() {
       categories,
       units,
     },
-    meta: getPublicPortalMeta(),
+    meta,
   };
 
   return <PortalHome initialData={initialData} />;

@@ -10,7 +10,7 @@ export const AppConfig = {
   LOGO_URL: process.env.LOGO_URL || 'https://lh3.googleusercontent.com/d/1uM0wo3a7aAZKBZn6RHkFjF8PtyXwGSQL',
   JATA_NEGARA_URL: process.env.JATA_NEGARA_URL || 'https://lh3.googleusercontent.com/d/1aJu8cjo7In9r4i0BS0V9j5gs8hwYddu1',
   E_KEBERADAAN_URL: process.env.E_KEBERADAAN_URL || 'https://script.google.com/macros/s/AKfycbwDy8XuqQHxgfoptFV_oLNlSiawkdwXk_LC46BKWnsreUW0P7piXMC4cfDC6ENYZl3F/exec',
-  CARTA_ORGANISASI_URL: process.env.CARTA_ORGANISASI_URL || 'https://drive.google.com/file/d/1ZSLgfUdeoVafSvHljagRPIXaqRpPxeP4/preview',
+  CARTA_ORGANISASI_URL: process.env.CARTA_ORGANISASI_URL || 'https://drive.google.com/file/d/1plKZgpVPVOWggd_LS1O9TabTHYkqeU_T/view?usp=sharing',
   
   SPREADSHEET_ID: process.env.GOOGLE_SPREADSHEET_ID || '',
   DRIVE_ROOT_FOLDER_ID: process.env.GOOGLE_DRIVE_ROOT_FOLDER_ID || '',
