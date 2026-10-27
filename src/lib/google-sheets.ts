@@ -73,6 +73,16 @@ function invalidateSheetCache(): void {
   cacheStore.clear();
 }
 
+function formatNameFromEmail(email: string): string {
+  if (!email) return 'Pegawai Sektor';
+  const local = email.split('@')[0];
+  return local
+    .replace(/[._-]+/g, ' ')
+    .split(' ')
+    .map((w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
+    .join(' ');
+}
+
 export class GoogleSheetsService {
   private static sheetsApi: sheets_v4.Sheets | null = null;
 
@@ -204,14 +214,23 @@ export class GoogleSheetsService {
         status: (String(r[5] || 'active') as 'active' | 'inactive'),
       })).filter((c) => c.status === 'active').sort((a, b) => a.displayOrder - b.displayOrder);
 
-      const quickAccess: QuickAccessService[] = (quickRows.length > 0 ? quickRows : []).map((r, idx) => ({
-        title: String(r[0] || ''),
-        description: String(r[1] || ''),
-        icon: String(r[2] || 'globe'),
-        link: String(r[3] || '#'),
-        external: String(r[4]).toLowerCase() === 'true',
-        order: Number(r[5] || idx + 1),
-      })).sort((a, b) => a.order - b.order);
+      const quickAccess: QuickAccessService[] = (quickRows.length > 0 ? quickRows : []).map((r, idx) => {
+        const rawExternal = String(r[4] || '').trim().toLowerCase();
+        const isExternal =
+          rawExternal === 'ya' ||
+          rawExternal === 'true' ||
+          rawExternal === 'yes' ||
+          rawExternal === '1';
+
+        return {
+          title: String(r[0] || '').trim(),
+          description: String(r[1] || '').trim(),
+          icon: String(r[2] || 'globe').trim(),
+          link: String(r[3] || '#').trim(),
+          external: isExternal,
+          order: Number(r[5] || idx + 1),
+        };
+      }).sort((a, b) => a.order - b.order);
 
       const data = {
         heroAlbum: heroAlbum.length > 0 ? heroAlbum : [...globalMemoryDb.heroSlides],
@@ -559,6 +578,57 @@ export class GoogleSheetsService {
       globalMemoryDb.units.push(updated);
     }
 
+    const sheets = this.getClient();
+    if (sheets && updated.unitId) {
+      try {
+        const row = [
+          updated.unitId,
+          updated.unitCode,
+          sanitizeString(updated.unitName),
+          sanitizeString(updated.title),
+          sanitizeString(updated.tagline),
+          sanitizeString(updated.description),
+          updated.icon,
+          updated.categoryId,
+          updated.logoFileId || '',
+          updated.bannerFileId || '',
+          updated.externalLink || '',
+          updated.displayOrder,
+          updated.status,
+          updated.hasDocuments ? 'TRUE' : 'FALSE',
+          updated.driveFolderId || '',
+          updated.createdAt || new Date().toISOString(),
+          updated.updatedAt,
+        ];
+
+        const checkRes = await sheets.spreadsheets.values.get({
+          spreadsheetId: AppConfig.SPREADSHEET_ID,
+          range: `${AppConfig.SHEET_UNITS}!A2:A`,
+        });
+        const existingIds = (checkRes.data.values || []).map((r) => r[0]);
+        const existingRowIndex = existingIds.findIndex((uid) => uid === updated.unitId);
+
+        if (existingRowIndex > -1) {
+          const rowNum = existingRowIndex + 2;
+          await sheets.spreadsheets.values.update({
+            spreadsheetId: AppConfig.SPREADSHEET_ID,
+            range: `${AppConfig.SHEET_UNITS}!A${rowNum}:Q${rowNum}`,
+            valueInputOption: 'USER_ENTERED',
+            requestBody: { values: [row] },
+          });
+        } else {
+          await sheets.spreadsheets.values.append({
+            spreadsheetId: AppConfig.SPREADSHEET_ID,
+            range: `${AppConfig.SHEET_UNITS}!A2:Q`,
+            valueInputOption: 'USER_ENTERED',
+            requestBody: { values: [row] },
+          });
+        }
+      } catch (err) {
+        console.warn('Google Sheets saveUnit error:', err);
+      }
+    }
+
     await this.logAudit('SAVE_UNIT', 'ADMIN', 'SUCCESS', `Simpan unit: ${updated.unitName}`);
     return updated;
   }
@@ -569,6 +639,30 @@ export class GoogleSheetsService {
     if (idx > -1) {
       globalMemoryDb.units[idx].status = 'inactive';
     }
+
+    const sheets = this.getClient();
+    if (sheets) {
+      try {
+        const checkRes = await sheets.spreadsheets.values.get({
+          spreadsheetId: AppConfig.SPREADSHEET_ID,
+          range: `${AppConfig.SHEET_UNITS}!A2:A`,
+        });
+        const existingIds = (checkRes.data.values || []).map((r) => r[0]);
+        const existingRowIndex = existingIds.findIndex((uid) => uid === unitId);
+        if (existingRowIndex > -1) {
+          const rowNum = existingRowIndex + 2;
+          await sheets.spreadsheets.values.update({
+            spreadsheetId: AppConfig.SPREADSHEET_ID,
+            range: `${AppConfig.SHEET_UNITS}!M${rowNum}`,
+            valueInputOption: 'USER_ENTERED',
+            requestBody: { values: [['inactive']] },
+          });
+        }
+      } catch (err) {
+        console.warn('Google Sheets deleteUnit error:', err);
+      }
+    }
+
     await this.logAudit('DELETE_UNIT', 'ADMIN', 'SUCCESS', `Unit ${unitId} dinyahaktifkan`);
     return true;
   }
@@ -579,18 +673,87 @@ export class GoogleSheetsService {
     const cached = getFromCache<UnitCategory[]>(cacheKey);
     if (cached) return cached;
 
-    const list = [...globalMemoryDb.categories].sort((a, b) => a.displayOrder - b.displayOrder);
-    return saveToCache(cacheKey, list, 300000);
+    const sheets = this.getClient();
+    let sheetCategories: UnitCategory[] = [];
+
+    if (sheets) {
+      try {
+        const res = await sheets.spreadsheets.values.get({
+          spreadsheetId: AppConfig.SPREADSHEET_ID,
+          range: `${AppConfig.SHEET_UNIT_CATEGORIES}!A2:H`,
+        });
+
+        const rows = res.data.values || [];
+        sheetCategories = rows
+          .map((r, idx) => ({
+            categoryId: String(r[0] || '').trim(),
+            categoryName: String(r[1] || '').trim(),
+            description: String(r[2] || '').trim(),
+            icon: String(r[3] || 'layers').trim(),
+            displayOrder: Number(r[4] || idx + 1),
+            status: (String(r[5] || 'active').trim().toLowerCase() === 'inactive' ? 'inactive' : 'active') as 'active' | 'inactive',
+          }))
+          .filter((c) => c.status === 'active' && c.categoryId);
+      } catch (err) {
+        console.warn('Google Sheets getCategories error:', err);
+      }
+    }
+
+    const list = sheetCategories.length > 0 ? sheetCategories : [...globalMemoryDb.categories];
+    const result = list.sort((a, b) => a.displayOrder - b.displayOrder);
+    return saveToCache(cacheKey, result, 300000);
   }
 
   // --- Unit Content ---
   static async getUnitContent(unitId?: string): Promise<UnitContent[]> {
-    const cacheKey = `unit_content_${unitId || 'all'}`;
+    const targetUnit = unitId ? this.normalizeUnitId(unitId) : undefined;
+    const cacheKey = `unit_content_${targetUnit || 'all'}`;
     const cached = getFromCache<UnitContent[]>(cacheKey);
     if (cached) return cached;
 
-    let items = [...globalMemoryDb.content];
-    if (unitId) items = items.filter((c) => c.unitId === unitId);
+    const sheets = this.getClient();
+    let sheetContent: UnitContent[] = [];
+
+    if (sheets) {
+      try {
+        const res = await sheets.spreadsheets.values.get({
+          spreadsheetId: AppConfig.SPREADSHEET_ID,
+          range: `${AppConfig.SHEET_UNIT_CONTENT}!A2:L`,
+        });
+
+        const rows = res.data.values || [];
+        sheetContent = rows
+          .map((r, idx) => {
+            let sectionType: 'responsibility' | 'service' | 'custom' = 'responsibility';
+            const rawType = String(r[2] || '').trim().toLowerCase();
+            if (rawType === 'service') sectionType = 'service';
+            else if (rawType === 'custom' || rawType === 'general') sectionType = 'custom';
+
+            return {
+              contentId: String(r[0] || `CNT_${idx + 1}`),
+              unitId: this.normalizeUnitId(String(r[1] || '')),
+              sectionType,
+              title: String(r[3] || '').trim(),
+              content: String(r[4] || '').trim(),
+              imageFileId: String(r[5] || '').trim(),
+              documentFileId: String(r[6] || '').trim(),
+              linkUrl: String(r[7] || '').trim(),
+              displayOrder: Number(r[8] || idx + 1),
+              status: (String(r[9] || 'active').trim().toLowerCase() === 'inactive' ? 'inactive' : 'active') as 'active' | 'inactive',
+              createdAt: String(r[10] || ''),
+              updatedAt: String(r[11] || ''),
+            };
+          })
+          .filter((c) => c.status !== 'inactive' && c.title);
+      } catch (err) {
+        console.warn('Google Sheets getUnitContent error:', err);
+      }
+    }
+
+    let items = sheetContent.length > 0 ? sheetContent : [...globalMemoryDb.content];
+    if (targetUnit) {
+      items = items.filter((c) => this.normalizeUnitId(c.unitId) === targetUnit);
+    }
     const result = items.sort((a, b) => a.displayOrder - b.displayOrder);
     return saveToCache(cacheKey, result, 120000);
   }
@@ -600,10 +763,13 @@ export class GoogleSheetsService {
     const id = data.contentId || `CNT_${Date.now()}`;
     const record: UnitContent = {
       contentId: id,
-      unitId: data.unitId || '',
+      unitId: this.normalizeUnitId(data.unitId || ''),
       sectionType: data.sectionType || 'responsibility',
       title: data.title || '',
       content: data.content || '',
+      imageFileId: data.imageFileId || '',
+      documentFileId: data.documentFileId || '',
+      linkUrl: data.linkUrl || '',
       displayOrder: data.displayOrder || 1,
       status: data.status || 'active',
       createdAt: data.createdAt || new Date().toISOString(),
@@ -614,6 +780,52 @@ export class GoogleSheetsService {
     if (idx > -1) globalMemoryDb.content[idx] = record;
     else globalMemoryDb.content.push(record);
 
+    const sheets = this.getClient();
+    if (sheets) {
+      try {
+        const row = [
+          record.contentId,
+          record.unitId,
+          record.sectionType,
+          sanitizeString(record.title),
+          sanitizeString(record.content),
+          record.imageFileId,
+          record.documentFileId,
+          record.linkUrl,
+          record.displayOrder,
+          record.status,
+          record.createdAt,
+          record.updatedAt,
+        ];
+
+        const checkRes = await sheets.spreadsheets.values.get({
+          spreadsheetId: AppConfig.SPREADSHEET_ID,
+          range: `${AppConfig.SHEET_UNIT_CONTENT}!A2:A`,
+        });
+        const existingIds = (checkRes.data.values || []).map((r) => r[0]);
+        const existingRowIndex = existingIds.findIndex((cid) => cid === id);
+
+        if (existingRowIndex > -1) {
+          const rowNum = existingRowIndex + 2;
+          await sheets.spreadsheets.values.update({
+            spreadsheetId: AppConfig.SPREADSHEET_ID,
+            range: `${AppConfig.SHEET_UNIT_CONTENT}!A${rowNum}:L${rowNum}`,
+            valueInputOption: 'USER_ENTERED',
+            requestBody: { values: [row] },
+          });
+        } else {
+          await sheets.spreadsheets.values.append({
+            spreadsheetId: AppConfig.SPREADSHEET_ID,
+            range: `${AppConfig.SHEET_UNIT_CONTENT}!A2:L`,
+            valueInputOption: 'USER_ENTERED',
+            requestBody: { values: [row] },
+          });
+        }
+      } catch (err) {
+        console.warn('Google Sheets saveUnitContent error:', err);
+      }
+    }
+
     await this.logAudit('SAVE_UNIT_CONTENT', 'ADMIN', 'SUCCESS', `Kandungan unit ${record.unitId}: ${record.title}`);
     return record;
   }
@@ -621,18 +833,98 @@ export class GoogleSheetsService {
   static async deleteUnitContent(contentId: string): Promise<boolean> {
     invalidateSheetCache();
     globalMemoryDb.content = globalMemoryDb.content.filter((c) => c.contentId !== contentId);
+
+    const sheets = this.getClient();
+    if (sheets) {
+      try {
+        const checkRes = await sheets.spreadsheets.values.get({
+          spreadsheetId: AppConfig.SPREADSHEET_ID,
+          range: `${AppConfig.SHEET_UNIT_CONTENT}!A2:A`,
+        });
+        const existingIds = (checkRes.data.values || []).map((r) => r[0]);
+        const existingRowIndex = existingIds.findIndex((cid) => cid === contentId);
+        if (existingRowIndex > -1) {
+          const rowNum = existingRowIndex + 2;
+          await sheets.spreadsheets.values.update({
+            spreadsheetId: AppConfig.SPREADSHEET_ID,
+            range: `${AppConfig.SHEET_UNIT_CONTENT}!J${rowNum}`,
+            valueInputOption: 'USER_ENTERED',
+            requestBody: { values: [['inactive']] },
+          });
+        }
+      } catch (err) {
+        console.warn('Google Sheets deleteUnitContent error:', err);
+      }
+    }
+
     await this.logAudit('DELETE_UNIT_CONTENT', 'ADMIN', 'SUCCESS', `Padam kandungan ID ${contentId}`);
     return true;
   }
 
   // --- Employees ---
   static async getEmployees(unitId?: string): Promise<Employee[]> {
-    const cacheKey = `employees_${unitId || 'all'}`;
+    const targetUnit = unitId ? this.normalizeUnitId(unitId) : undefined;
+    const cacheKey = `employees_${targetUnit || 'all'}`;
     const cached = getFromCache<Employee[]>(cacheKey);
     if (cached) return cached;
 
-    let list = [...globalMemoryDb.employees].filter((e) => e.status !== 'inactive');
-    if (unitId) list = list.filter((e) => e.unitId === unitId);
+    const sheets = this.getClient();
+    let sheetEmployees: Employee[] = [];
+
+    if (sheets) {
+      try {
+        const res = await sheets.spreadsheets.values.get({
+          spreadsheetId: AppConfig.SPREADSHEET_ID,
+          range: `${AppConfig.SHEET_EMPLOYEES}!A2:L`,
+        });
+
+        const rows = res.data.values || [];
+        sheetEmployees = rows
+          .map((r, idx) => {
+            const rawEmail = String(r[5] || '').trim();
+            const rawName = String(r[2] || '').trim();
+            const name = rawName || (rawEmail ? formatNameFromEmail(rawEmail) : `Pegawai ${idx + 1}`);
+            const empId = String(
+              r[0] || (rawEmail ? `EMP_${rawEmail.split('@')[0].replace(/[^a-zA-Z0-9]/g, '_')}` : `EMP_${idx + 1}`)
+            );
+            const rawRole = String(r[7] || 'staff').toLowerCase();
+            const accessRole: 'admin' | 'staff' = rawRole === 'admin' ? 'admin' : 'staff';
+            const position =
+              String(r[3] || '').trim() ||
+              (accessRole === 'admin' ? 'Pegawai Pentadbir Sektor' : 'Pegawai Sektor Pembelajaran');
+
+            return {
+              employeeId: empId,
+              unitId: this.normalizeUnitId(String(r[1] || '')),
+              name,
+              position,
+              photoFileId: String(r[4] || '').trim(),
+              email: rawEmail,
+              phone: String(r[6] || '').trim(),
+              accessRole,
+              displayOrder: Number(r[8] || idx + 1),
+              status: (String(r[9] || 'active').trim().toLowerCase() === 'inactive' ? 'inactive' : 'active') as 'active' | 'inactive',
+              createdAt: String(r[10] || ''),
+              updatedAt: String(r[11] || ''),
+            };
+          })
+          .filter((e) => e.status !== 'inactive' && (e.name || e.email));
+      } catch (err) {
+        console.warn('Google Sheets getEmployees error:', err);
+      }
+    }
+
+    let list: Employee[] = [];
+    if (sheetEmployees.length > 0) {
+      list = sheetEmployees;
+    } else {
+      list = [...globalMemoryDb.employees].filter((e) => e.status !== 'inactive');
+    }
+
+    if (targetUnit) {
+      list = list.filter((e) => this.normalizeUnitId(e.unitId) === targetUnit);
+    }
+
     const result = list.sort((a, b) => a.displayOrder - b.displayOrder);
     return saveToCache(cacheKey, result, 120000);
   }
@@ -642,7 +934,7 @@ export class GoogleSheetsService {
     const id = emp.employeeId || `EMP_${Date.now()}`;
     const record: Employee = {
       employeeId: id,
-      unitId: emp.unitId || '',
+      unitId: this.normalizeUnitId(emp.unitId || ''),
       name: emp.name || '',
       position: emp.position || '',
       email: emp.email || '',
@@ -659,6 +951,54 @@ export class GoogleSheetsService {
     if (idx > -1) globalMemoryDb.employees[idx] = record;
     else globalMemoryDb.employees.push(record);
 
+    const sheets = this.getClient();
+    if (sheets) {
+      try {
+        const row = [
+          record.employeeId,
+          record.unitId,
+          sanitizeString(record.name),
+          sanitizeString(record.position),
+          record.photoFileId,
+          record.email,
+          record.phone,
+          record.accessRole,
+          record.displayOrder,
+          record.status,
+          record.createdAt,
+          record.updatedAt,
+        ];
+
+        const checkRes = await sheets.spreadsheets.values.get({
+          spreadsheetId: AppConfig.SPREADSHEET_ID,
+          range: `${AppConfig.SHEET_EMPLOYEES}!A2:F`,
+        });
+        const existingRows = checkRes.data.values || [];
+        const existingRowIndex = existingRows.findIndex(
+          (r) => r[0] === id || (record.email && r[5]?.toLowerCase() === record.email.toLowerCase())
+        );
+
+        if (existingRowIndex > -1) {
+          const rowNum = existingRowIndex + 2;
+          await sheets.spreadsheets.values.update({
+            spreadsheetId: AppConfig.SPREADSHEET_ID,
+            range: `${AppConfig.SHEET_EMPLOYEES}!A${rowNum}:L${rowNum}`,
+            valueInputOption: 'USER_ENTERED',
+            requestBody: { values: [row] },
+          });
+        } else {
+          await sheets.spreadsheets.values.append({
+            spreadsheetId: AppConfig.SPREADSHEET_ID,
+            range: `${AppConfig.SHEET_EMPLOYEES}!A2:L`,
+            valueInputOption: 'USER_ENTERED',
+            requestBody: { values: [row] },
+          });
+        }
+      } catch (err) {
+        console.warn('Google Sheets saveEmployee error:', err);
+      }
+    }
+
     await this.logAudit('SAVE_EMPLOYEE', 'ADMIN', 'SUCCESS', `Pegawai: ${record.name} (${record.position})`);
     return record;
   }
@@ -667,6 +1007,30 @@ export class GoogleSheetsService {
     invalidateSheetCache();
     const idx = globalMemoryDb.employees.findIndex((e) => e.employeeId === employeeId);
     if (idx > -1) globalMemoryDb.employees[idx].status = 'inactive';
+
+    const sheets = this.getClient();
+    if (sheets) {
+      try {
+        const checkRes = await sheets.spreadsheets.values.get({
+          spreadsheetId: AppConfig.SPREADSHEET_ID,
+          range: `${AppConfig.SHEET_EMPLOYEES}!A2:A`,
+        });
+        const existingIds = (checkRes.data.values || []).map((r) => r[0]);
+        const existingRowIndex = existingIds.findIndex((eid) => eid === employeeId);
+        if (existingRowIndex > -1) {
+          const rowNum = existingRowIndex + 2;
+          await sheets.spreadsheets.values.update({
+            spreadsheetId: AppConfig.SPREADSHEET_ID,
+            range: `${AppConfig.SHEET_EMPLOYEES}!J${rowNum}`,
+            valueInputOption: 'USER_ENTERED',
+            requestBody: { values: [['inactive']] },
+          });
+        }
+      } catch (err) {
+        console.warn('Google Sheets deleteEmployee error:', err);
+      }
+    }
+
     await this.logAudit('DELETE_EMPLOYEE', 'ADMIN', 'SUCCESS', `Nyahaktifkan pegawai ID: ${employeeId}`);
     return true;
   }
@@ -862,23 +1226,97 @@ export class GoogleSheetsService {
     return true;
   }
 
+  // --- Settings ---
+  static async getSettings(): Promise<Record<string, string>> {
+    const cacheKey = 'settings_all';
+    const cached = getFromCache<Record<string, string>>(cacheKey);
+    if (cached) return cached;
+
+    const sheets = this.getClient();
+    const settings: Record<string, string> = {
+      CARTA_ORGANISASI_URL: AppConfig.CARTA_ORGANISASI_URL,
+    };
+
+    if (sheets) {
+      try {
+        const res = await sheets.spreadsheets.values.get({
+          spreadsheetId: AppConfig.SPREADSHEET_ID,
+          range: `${AppConfig.SHEET_SETTINGS}!A2:D`,
+        });
+        const rows = res.data.values || [];
+        rows.forEach((r) => {
+          if (r[0]) {
+            settings[String(r[0]).trim()] = String(r[1] || '').trim();
+          }
+        });
+      } catch (err) {
+        console.warn('Google Sheets getSettings error:', err);
+      }
+    }
+
+    return saveToCache(cacheKey, settings, 300000);
+  }
+
   // --- Quick Access ---
   static async getQuickAccess(): Promise<QuickAccessService[]> {
     const cacheKey = 'quick_access_all';
     const cached = getFromCache<QuickAccessService[]>(cacheKey);
     if (cached) return cached;
 
-    const list = [...globalMemoryDb.quickAccess].sort((a, b) => a.order - b.order);
-    return saveToCache(cacheKey, list, 300000);
+    const sheets = this.getClient();
+    let sheetServices: QuickAccessService[] = [];
+
+    if (sheets) {
+      try {
+        const res = await sheets.spreadsheets.values.get({
+          spreadsheetId: AppConfig.SPREADSHEET_ID,
+          range: `${AppConfig.SHEET_PERKHIDMATAN}!A2:F`,
+        });
+
+        const rows = res.data.values || [];
+        sheetServices = rows
+          .map((r, idx) => {
+            const rawExternal = String(r[4] || '').trim().toLowerCase();
+            const isExternal =
+              rawExternal === 'ya' ||
+              rawExternal === 'true' ||
+              rawExternal === 'yes' ||
+              rawExternal === '1';
+
+            return {
+              title: String(r[0] || '').trim(),
+              description: String(r[1] || '').trim(),
+              icon: String(r[2] || 'globe').trim(),
+              link: String(r[3] || '#').trim(),
+              external: isExternal,
+              order: Number(r[5] || idx + 1),
+            };
+          })
+          .filter((s) => s.title);
+      } catch (err) {
+        console.warn('Google Sheets getQuickAccess error:', err);
+      }
+    }
+
+    const list = sheetServices.length > 0 ? sheetServices : [...globalMemoryDb.quickAccess];
+    const result = list.sort((a, b) => a.order - b.order);
+    return saveToCache(cacheKey, result, 300000);
   }
 
   // --- System Info & Audit Logs ---
   static async getSystemInfo(): Promise<SystemInfo> {
+    const [units, employees, documents, announcements] = await Promise.all([
+      this.getUnits(),
+      this.getEmployees(),
+      this.getDocuments(),
+      this.getAnnouncements(),
+    ]);
+
     return {
-      unitCount: globalMemoryDb.units.filter((u) => u.status === 'active').length,
-      employeeCount: globalMemoryDb.employees.filter((e) => e.status === 'active').length,
-      documentCount: globalMemoryDb.documents.filter((d) => d.status === 'active').length,
-      announcementCount: globalMemoryDb.announcements.length,
+      unitCount: units.filter((u) => u.status === 'active').length,
+      employeeCount: employees.filter((e) => e.status === 'active').length,
+      documentCount: documents.filter((d) => d.status === 'active').length,
+      announcementCount: announcements.length,
       auditLogs: [...globalMemoryDb.auditLogs].slice(0, 20),
     };
   }

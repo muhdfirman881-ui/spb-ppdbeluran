@@ -7,12 +7,13 @@ export const dynamic = 'force-dynamic';
 
 export async function GET() {
   try {
-    const [heroAlbum, announcements, units, categories, quickAccess] = await Promise.all([
+    const [heroAlbum, announcements, units, categories, quickAccess, settings] = await Promise.all([
       GoogleSheetsService.getHeroAlbum(),
       GoogleSheetsService.getAnnouncements(6),
       GoogleSheetsService.getUnits(),
       GoogleSheetsService.getCategories(),
       GoogleSheetsService.getQuickAccess(),
+      GoogleSheetsService.getSettings(),
     ]);
 
     // Build hierarchy
@@ -20,6 +21,11 @@ export async function GET() {
       category: cat,
       units: units.filter((u) => u.categoryId === cat.categoryId),
     }));
+
+    const meta = getPublicPortalMeta();
+    if (settings.CARTA_ORGANISASI_URL) {
+      meta.cartaOrganisasiUrl = settings.CARTA_ORGANISASI_URL;
+    }
 
     return NextResponse.json({
       success: true,
@@ -33,7 +39,7 @@ export async function GET() {
           categories,
           units,
         },
-        meta: getPublicPortalMeta(),
+        meta,
       },
     });
   } catch (error: unknown) {
