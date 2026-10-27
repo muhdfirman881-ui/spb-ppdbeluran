@@ -4,21 +4,20 @@ import { AppConfig } from '@/lib/config';
 import { GoogleSheetsService } from '@/lib/google-sheets';
 
 function getBaseUrl(request: NextRequest): string {
-  const envUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.APP_URL;
-  if (envUrl && !envUrl.includes('localhost')) {
-    return envUrl.replace(/\/$/, '');
-  }
-
-  if (process.env.VERCEL_URL) {
-    return `https://${process.env.VERCEL_URL}`;
-  }
-
+  // 1. Prioritize x-forwarded-host because it is the exact domain the user visited in their browser
   const forwardedHost = request.headers.get('x-forwarded-host');
   const forwardedProto = request.headers.get('x-forwarded-proto') || 'https';
   if (forwardedHost) {
     const host = forwardedHost.split(',')[0].trim();
     return `${forwardedProto}://${host}`;
   }
+
+  // 2. If explicit production app URL is set
+  const envUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.APP_URL;
+  if (envUrl && !envUrl.includes('localhost')) {
+    return envUrl.replace(/\/$/, '');
+  }
+
   return request.nextUrl.origin;
 }
 
