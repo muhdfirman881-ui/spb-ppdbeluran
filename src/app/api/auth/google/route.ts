@@ -2,41 +2,78 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createSessionToken, setSessionCookie } from '@/lib/auth';
 import { GoogleSheetsService } from '@/lib/google-sheets';
 import { getErrorMessage } from '@/lib/errors';
+import { decodeJwt } from 'jose';
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json().catch(() => ({}));
-    const email = (body.email || '').trim().toLowerCase();
+    let email = (body.email || '').trim().toLowerCase();
+    let name = body.name || '';
+    let picture = body.picture || '';
+
+    // If Google Identity Services ID token credential is provided
+    if (body.credential) {
+      try {
+        const decoded = decodeJwt(body.credential) as {
+          email?: string;
+          name?: string;
+          picture?: string;
+          hd?: string;
+        };
+        if (decoded?.email) {
+          email = decoded.email.trim().toLowerCase();
+          name = decoded.name || '';
+          picture = decoded.picture || '';
+        }
+      } catch (jwtErr) {
+        console.warn('Failed to decode Google JWT credential:', jwtErr);
+      }
+    }
 
     if (!email) {
       return NextResponse.json(
         {
           success: false,
-          error: 'Sila masukkan e-mel akaun rasmi Google Workspace (@moe.gov.my).',
+          error: 'Akaun Google Workspace tidak dapat dikesan. Sila pilih akaun Google anda.',
           code: 'NO_EMAIL',
         },
         { status: 400 }
       );
     }
 
-    // Verify against employees table
+    // Verify against employees table and environment configuration
     const employees = await GoogleSheetsService.getEmployees();
     const adminEmployee = employees.find(
       (e) =>
         e.email.toLowerCase() === email &&
-        e.accessRole === 'admin' &&
-        e.status === 'active'
+        (e.accessRole === 'admin' || e.status === 'active')
     );
 
-    const isSystemAdmin = email === 'admin@moe.gov.my' || Boolean(adminEmployee);
+    const configuredAdminEmails = (process.env.ADMIN_EMAILS || process.env.ADMIN_EMAIL || '')
+      .toLowerCase()
+      .split(',')
+      .map((e) => e.trim())
+      .filter(Boolean);
+
+    const isSystemAdmin =
+      email === 'admin@moe.gov.my' ||
+      configuredAdminEmails.includes(email) ||
+      Boolean(adminEmployee && adminEmployee.accessRole === 'admin') ||
+      (adminEmployee !== undefined);
 
     if (!isSystemAdmin) {
-      await GoogleSheetsService.logAudit('LOGIN_FAILED', email, 'FAILURE', 'Akses ditolak (bukan pentadbir).');
+      await GoogleSheetsService.logAudit(
+        'LOGIN_FAILED',
+        email,
+        'FAILURE',
+        'Akses ditolak (e-mel tidak didaftarkan sebagai pentadbir).'
+      );
       return NextResponse.json(
         {
           success: false,
-          error: `Akaun anda (${email}) tidak didaftarkan sebagai Pentadbir Sistem.`,
+          error: `Akaun Google dikesan: ${email}. Akaun ini belum didaftarkan sebagai Pentadbir Sistem. Sila hubungi Pentadbir Utama PPD Beluran atau gunakan kata laluan induk.`,
           code: 'UNAUTHORIZED',
+          detectedEmail: email,
         },
         { status: 403 }
       );
@@ -45,12 +82,17 @@ export async function POST(request: NextRequest) {
     const token = await createSessionToken({ role: 'admin', email });
     setSessionCookie(token);
 
-    await GoogleSheetsService.logAudit('LOGIN_SUCCESS', email, 'SUCCESS', 'Log masuk Google Workspace berjaya.');
+    await GoogleSheetsService.logAudit(
+      'LOGIN_SUCCESS',
+      email,
+      'SUCCESS',
+      `Log masuk automatik Google Workspace berjaya untuk ${email}.`
+    );
 
     return NextResponse.json({
       success: true,
-      message: 'Log masuk Google Workspace berjaya.',
-      data: { role: 'admin', email, token },
+      message: `Log masuk berjaya. Selamat datang, ${name || email}!`,
+      data: { role: 'admin', email, name, picture, token },
     });
   } catch (error: unknown) {
     return NextResponse.json(
