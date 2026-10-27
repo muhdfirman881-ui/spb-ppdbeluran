@@ -1,10 +1,20 @@
 import { NextRequest, NextResponse } from 'next/server';
 
 function getBaseUrl(request: NextRequest): string {
+  const envUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.APP_URL;
+  if (envUrl && !envUrl.includes('localhost')) {
+    return envUrl.replace(/\/$/, '');
+  }
+
+  if (process.env.VERCEL_URL) {
+    return `https://${process.env.VERCEL_URL}`;
+  }
+
   const forwardedHost = request.headers.get('x-forwarded-host');
   const forwardedProto = request.headers.get('x-forwarded-proto') || 'https';
   if (forwardedHost) {
-    return `${forwardedProto}://${forwardedHost}`;
+    const host = forwardedHost.split(',')[0].trim();
+    return `${forwardedProto}://${host}`;
   }
   return request.nextUrl.origin;
 }

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   X,
@@ -11,28 +11,12 @@ import {
   ShieldCheck,
   UserCheck,
   ArrowRight,
-  ExternalLink,
 } from 'lucide-react';
 
 interface AdminLoginModalProps {
   isOpen: boolean;
   onClose: () => void;
   onLoginSuccess: () => void;
-}
-
-declare global {
-  interface Window {
-    google?: {
-      accounts: {
-        id: {
-          initialize: (config: any) => void;
-          renderButton: (element: HTMLElement, options: any) => void;
-          prompt: (momentListener?: any) => void;
-          disableAutoSelect: () => void;
-        };
-      };
-    };
-  }
 }
 
 export const AdminLoginModal: React.FC<AdminLoginModalProps> = ({
@@ -51,8 +35,6 @@ export const AdminLoginModal: React.FC<AdminLoginModalProps> = ({
     email: string;
     name?: string;
   } | null>(null);
-  const [isGsiLoaded, setIsGsiLoaded] = useState(false);
-  const googleBtnContainerRef = useRef<HTMLDivElement>(null);
 
   // Read URL search params for authentication feedback from OAuth callback
   useEffect(() => {
@@ -112,98 +94,6 @@ export const AdminLoginModal: React.FC<AdminLoginModalProps> = ({
     }
   }, []);
 
-  // Dynamically load Google Identity Services SDK for One Tap/Button if client ID is set
-  useEffect(() => {
-    if (!isOpen) return;
-
-    const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
-    if (!clientId) return;
-
-    const existingScript = document.getElementById('google-gsi-client');
-    if (!existingScript) {
-      const script = document.createElement('script');
-      script.id = 'google-gsi-client';
-      script.src = 'https://accounts.google.com/gsi/client';
-      script.async = true;
-      script.defer = true;
-      script.onload = () => setIsGsiLoaded(true);
-      document.body.appendChild(script);
-    } else {
-      setIsGsiLoaded(true);
-    }
-  }, [isOpen]);
-
-  // Handle Google Token Response (JWT ID Token) if One-Tap or GIS button is used
-  const handleCredentialResponse = React.useCallback(
-    async (response: { credential?: string }) => {
-      if (!response.credential) return;
-
-      setIsLoading(true);
-      setErrorMessage('');
-      setErrorDetails(null);
-
-      try {
-        const res = await fetch('/api/auth/google', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ credential: response.credential }),
-        });
-
-        const data = await res.json();
-        if (!res.ok || !data.success) {
-          setErrorMessage(data.error || 'Akaun tidak didaftarkan sebagai pentadbir.');
-          setIsLoading(false);
-          return;
-        }
-
-        if (data.data?.email) {
-          try {
-            localStorage.setItem('espb_last_admin_email', data.data.email);
-            if (data.data.name) {
-              localStorage.setItem('espb_last_admin_name', data.data.name);
-            }
-          } catch {}
-        }
-
-        onLoginSuccess();
-        onClose();
-        router.push('/admin');
-      } catch {
-        setErrorMessage('Ralat sambungan pelayan semasa mengesahkan akaun Google.');
-      } finally {
-        setIsLoading(false);
-      }
-    },
-    [router, onClose, onLoginSuccess]
-  );
-
-  // Initialize GIS if Google Client ID is configured
-  useEffect(() => {
-    const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
-    if (isGsiLoaded && window.google?.accounts?.id && clientId) {
-      try {
-        window.google.accounts.id.initialize({
-          client_id: clientId,
-          callback: handleCredentialResponse,
-          auto_select: false,
-        });
-
-        if (googleBtnContainerRef.current) {
-          googleBtnContainerRef.current.innerHTML = '';
-          window.google.accounts.id.renderButton(googleBtnContainerRef.current, {
-            theme: 'filled_blue',
-            size: 'large',
-            shape: 'pill',
-            text: 'continue_with',
-            width: 320,
-          });
-        }
-      } catch (err) {
-        console.warn('Google Identity Services initialization warning:', err);
-      }
-    }
-  }, [isGsiLoaded, handleCredentialResponse]);
-
   if (!isOpen) return null;
 
   // Trigger Google OAuth 2.0 Authorization Flow
@@ -256,7 +146,7 @@ export const AdminLoginModal: React.FC<AdminLoginModalProps> = ({
           </div>
           <button
             onClick={onClose}
-            className="p-1.5 rounded-xl text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+            className="p-1.5 rounded-xl text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
             aria-label="Tutup"
           >
             <X className="w-5 h-5" />
@@ -272,7 +162,7 @@ export const AdminLoginModal: React.FC<AdminLoginModalProps> = ({
                 setErrorMessage('');
                 setErrorDetails(null);
               }}
-              className="absolute top-3 right-3 text-red-400 hover:text-red-600 dark:hover:text-red-200 p-1"
+              className="absolute top-3 right-3 text-red-400 hover:text-red-600 dark:hover:text-red-200 p-1 cursor-pointer"
               title="Tutup amaran"
             >
               <X className="w-3.5 h-3.5" />
@@ -286,7 +176,7 @@ export const AdminLoginModal: React.FC<AdminLoginModalProps> = ({
 
             {errorDetails?.code === 'oauth_not_configured' && (
               <div className="pt-2 border-t border-red-200 dark:border-red-900/40 text-[11px] text-red-600 dark:text-red-400">
-                Langkah penyelesaian: Tambah nilai <code>GOOGLE_CLIENT_ID</code> dan <code>GOOGLE_CLIENT_SECRET</code> ke dalam fail <code>.env.local</code>.
+                Langkah penyelesaian: Tambah nilai <code>GOOGLE_CLIENT_ID</code> dan <code>GOOGLE_CLIENT_SECRET</code> ke dalam fail <code>.env.local</code> (atau Vercel Environment Variables).
               </div>
             )}
             {errorDetails?.code === 'unauthorized' && errorDetails.email && (
@@ -339,7 +229,7 @@ export const AdminLoginModal: React.FC<AdminLoginModalProps> = ({
                 <button
                   type="button"
                   onClick={clearLastAccount}
-                  className="p-2.5 rounded-xl text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-800 text-xs transition-colors"
+                  className="p-2.5 rounded-xl text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-800 text-xs transition-colors cursor-pointer"
                   title="Guna akaun Google lain"
                 >
                   <RefreshCw className="w-3.5 h-3.5" />
@@ -377,10 +267,7 @@ export const AdminLoginModal: React.FC<AdminLoginModalProps> = ({
             </div>
           )}
 
-          {/* Google Identity Services Render Target (If Client ID set) */}
-          <div ref={googleBtnContainerRef} className="flex justify-center my-1" />
-
-          {/* Primary OAuth 2.0 Login Action Button */}
+          {/* Single Official OAuth 2.0 Login Action Button */}
           <button
             type="button"
             onClick={() => handleGoogleOAuthLogin()}
@@ -421,7 +308,7 @@ export const AdminLoginModal: React.FC<AdminLoginModalProps> = ({
 
           <div className="flex items-center justify-center space-x-1.5 text-[11px] text-slate-400 dark:text-slate-500 pt-1">
             <ShieldCheck className="w-3.5 h-3.5 text-emerald-500" />
-            <span>Pengesahan Google OAuth 2.0 & OpenID Connect</span>
+            <span>Pengesahan Rasmi Google OAuth 2.0 & OpenID Connect</span>
           </div>
         </div>
       </div>
