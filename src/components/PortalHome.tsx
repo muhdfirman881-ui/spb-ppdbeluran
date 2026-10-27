@@ -76,6 +76,10 @@ export const PortalHome: React.FC<PortalHomeProps> = ({ initialData }) => {
     if (unitParam) {
       handleSelectUnit(unitParam);
     }
+    const authError = params.get('auth_error');
+    if (authError) {
+      setIsLoginModalOpen(true);
+    }
   }, [data.unitRegistry]);
 
   const handleSelectUnit = async (unitId: string | null) => {

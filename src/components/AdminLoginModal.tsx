@@ -10,6 +10,8 @@ import {
   RefreshCw,
   ShieldCheck,
   UserCheck,
+  ArrowRight,
+  ExternalLink,
 } from 'lucide-react';
 
 interface AdminLoginModalProps {
@@ -41,29 +43,78 @@ export const AdminLoginModal: React.FC<AdminLoginModalProps> = ({
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
-  const [detectedAccount, setDetectedAccount] = useState<{
+  const [errorDetails, setErrorDetails] = useState<{
+    code: string;
+    email?: string;
+  } | null>(null);
+  const [lastAccount, setLastAccount] = useState<{
     email: string;
     name?: string;
   } | null>(null);
   const [isGsiLoaded, setIsGsiLoaded] = useState(false);
   const googleBtnContainerRef = useRef<HTMLDivElement>(null);
 
-  // Check previously detected Google account on mount
+  // Read URL search params for authentication feedback from OAuth callback
+  useEffect(() => {
+    if (!isOpen || typeof window === 'undefined') return;
+
+    try {
+      const params = new URLSearchParams(window.location.search);
+      const authError = params.get('auth_error');
+      const returnedEmail = params.get('email');
+
+      if (authError) {
+        setErrorDetails({
+          code: authError,
+          email: returnedEmail || undefined,
+        });
+
+        if (authError === 'unauthorized') {
+          setErrorMessage(
+            `Akaun Google anda (${returnedEmail || 'ini'}) telah disahkan oleh Google, namun e-mel ini TIDAK didaftarkan sebagai Pentadbir Sistem di Google Sheets PPD Beluran.`
+          );
+        } else if (authError === 'oauth_not_configured') {
+          setErrorMessage(
+            'Kelayakan Google OAuth 2.0 (GOOGLE_CLIENT_ID & GOOGLE_CLIENT_SECRET) belum dimasukkan ke dalam fail .env.local di pelayan.'
+          );
+        } else if (authError === 'csrf_failed') {
+          setErrorMessage(
+            'Sesi pengesahan tamat tempoh atau token keselamatan tidak sepadan (CSRF). Sila cuba log masuk semula.'
+          );
+        } else if (authError === 'access_denied') {
+          setErrorMessage('Log masuk Google dibatalkan oleh pengguna.');
+        } else if (authError === 'token_exchange_failed') {
+          setErrorMessage('Ralat komunikasi semasa menukar token pengesahan dengan pelayan Google.');
+        } else if (authError === 'unverified_email') {
+          setErrorMessage('Akaun Google anda tidak mempunyai alamat e-mel yang sah atau disahkan oleh Google.');
+        } else {
+          setErrorMessage(`Ralat pengesahan Google: ${authError}`);
+        }
+      }
+    } catch {
+      // Window search params reading error
+    }
+  }, [isOpen]);
+
+  // Check last verified Google account on mount
   useEffect(() => {
     try {
-      const savedEmail = localStorage.getItem('espb_detected_google_email');
-      const savedName = localStorage.getItem('espb_detected_google_name') || undefined;
+      const savedEmail = localStorage.getItem('espb_last_admin_email');
+      const savedName = localStorage.getItem('espb_last_admin_name') || undefined;
       if (savedEmail) {
-        setDetectedAccount({ email: savedEmail, name: savedName });
+        setLastAccount({ email: savedEmail, name: savedName });
       }
     } catch {
       // LocalStorage not available
     }
   }, []);
 
-  // Dynamically load Google Identity Services SDK
+  // Dynamically load Google Identity Services SDK for One Tap/Button if client ID is set
   useEffect(() => {
     if (!isOpen) return;
+
+    const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
+    if (!clientId) return;
 
     const existingScript = document.getElementById('google-gsi-client');
     if (!existingScript) {
@@ -79,46 +130,49 @@ export const AdminLoginModal: React.FC<AdminLoginModalProps> = ({
     }
   }, [isOpen]);
 
-  // Handle Google Token Response (JWT ID Token)
-  const handleCredentialResponse = async (response: { credential?: string }) => {
-    if (!response.credential) return;
+  // Handle Google Token Response (JWT ID Token) if One-Tap or GIS button is used
+  const handleCredentialResponse = React.useCallback(
+    async (response: { credential?: string }) => {
+      if (!response.credential) return;
 
-    setIsLoading(true);
-    setErrorMessage('');
+      setIsLoading(true);
+      setErrorMessage('');
+      setErrorDetails(null);
 
-    try {
-      const res = await fetch('/api/auth/google', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ credential: response.credential }),
-      });
+      try {
+        const res = await fetch('/api/auth/google', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ credential: response.credential }),
+        });
 
-      const data = await res.json();
-      if (!res.ok || !data.success) {
-        setErrorMessage(data.error || 'Akaun tidak didaftarkan sebagai pentadbir.');
+        const data = await res.json();
+        if (!res.ok || !data.success) {
+          setErrorMessage(data.error || 'Akaun tidak didaftarkan sebagai pentadbir.');
+          setIsLoading(false);
+          return;
+        }
+
+        if (data.data?.email) {
+          try {
+            localStorage.setItem('espb_last_admin_email', data.data.email);
+            if (data.data.name) {
+              localStorage.setItem('espb_last_admin_name', data.data.name);
+            }
+          } catch {}
+        }
+
+        onLoginSuccess();
+        onClose();
+        router.push('/admin');
+      } catch {
+        setErrorMessage('Ralat sambungan pelayan semasa mengesahkan akaun Google.');
+      } finally {
         setIsLoading(false);
-        return;
       }
-
-      // Save detected account for instant future access
-      if (data.data?.email) {
-        try {
-          localStorage.setItem('espb_detected_google_email', data.data.email);
-          if (data.data.name) {
-            localStorage.setItem('espb_detected_google_name', data.data.name);
-          }
-        } catch {}
-      }
-
-      onLoginSuccess();
-      onClose();
-      router.push('/admin');
-    } catch {
-      setErrorMessage('Ralat sambungan pelayan semasa mengesahkan akaun Google.');
-    } finally {
-      setIsLoading(false);
-    }
-  };
+    },
+    [router, onClose, onLoginSuccess]
+  );
 
   // Initialize GIS if Google Client ID is configured
   useEffect(() => {
@@ -128,7 +182,7 @@ export const AdminLoginModal: React.FC<AdminLoginModalProps> = ({
         window.google.accounts.id.initialize({
           client_id: clientId,
           callback: handleCredentialResponse,
-          auto_select: true,
+          auto_select: false,
         });
 
         if (googleBtnContainerRef.current) {
@@ -145,98 +199,32 @@ export const AdminLoginModal: React.FC<AdminLoginModalProps> = ({
         console.warn('Google Identity Services initialization warning:', err);
       }
     }
-  }, [isGsiLoaded]);
+  }, [isGsiLoaded, handleCredentialResponse]);
 
   if (!isOpen) return null;
 
-  // Trigger Google Workspace Detection / Sign In
-  const triggerGoogleDetection = async () => {
+  // Trigger Google OAuth 2.0 Authorization Flow
+  // This physically navigates to Google's official login screen.
+  // Google validates user credentials/2FA and redirects back to /api/auth/google/callback.
+  // No user can forge or type another person's email.
+  const handleGoogleOAuthLogin = (hintEmail?: string) => {
     setIsLoading(true);
     setErrorMessage('');
+    setErrorDetails(null);
 
-    const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
-
-    // 1. If Google Identity Services is configured with Client ID, invoke official account prompt
-    if (window.google?.accounts?.id && clientId) {
-      window.google.accounts.id.prompt((notification: any) => {
-        if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
-          setIsLoading(false);
-        }
-      });
-      return;
+    let loginUrl = '/api/auth/google/login';
+    if (hintEmail) {
+      loginUrl += `?login_hint=${encodeURIComponent(hintEmail)}`;
     }
-
-    // 2. If user already has an active detected email on this browser, log in directly
-    if (detectedAccount?.email) {
-      try {
-        const res = await fetch('/api/auth/google', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email: detectedAccount.email }),
-        });
-
-        const data = await res.json();
-        if (!res.ok || !data.success) {
-          setErrorMessage(data.error || 'Akaun Google dikesan tidak mempunyai kebenaran pentadbir.');
-          setIsLoading(false);
-          return;
-        }
-
-        onLoginSuccess();
-        onClose();
-        router.push('/admin');
-        return;
-      } catch {
-        setErrorMessage('Ralat sambungan pelayan.');
-        setIsLoading(false);
-        return;
-      }
-    }
-
-    // 3. Fallback prompt: Ask user to select their active Google/MOE account
-    const entered = window.prompt(
-      'Kesan Akaun Google Workspace:\nSila masukkan alamat e-mel Google Workspace (@moe.gov.my) anda yang sedang aktif pada pelayar ini:'
-    );
-
-    if (!entered) {
-      setIsLoading(false);
-      return;
-    }
-
-    try {
-      const res = await fetch('/api/auth/google', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: entered.trim() }),
-      });
-
-      const data = await res.json();
-      if (!res.ok || !data.success) {
-        setErrorMessage(data.error || 'Akaun tidak didaftarkan sebagai pentadbir.');
-        setIsLoading(false);
-        return;
-      }
-
-      try {
-        localStorage.setItem('espb_detected_google_email', entered.trim());
-      } catch {}
-
-      onLoginSuccess();
-      onClose();
-      router.push('/admin');
-    } catch {
-      setErrorMessage('Ralat sambungan pelayan.');
-    } finally {
-      setIsLoading(false);
-    }
+    window.location.href = loginUrl;
   };
 
-  const clearDetectedAccount = () => {
+  const clearLastAccount = () => {
     try {
-      localStorage.removeItem('espb_detected_google_email');
-      localStorage.removeItem('espb_detected_google_name');
+      localStorage.removeItem('espb_last_admin_email');
+      localStorage.removeItem('espb_last_admin_name');
     } catch {}
-    setDetectedAccount(null);
+    setLastAccount(null);
   };
 
   return (
@@ -272,34 +260,49 @@ export const AdminLoginModal: React.FC<AdminLoginModalProps> = ({
           </button>
         </div>
 
-        {/* Alert Error */}
+        {/* Alert Error Box */}
         {errorMessage && (
-          <div className="mb-5 p-3.5 rounded-xl bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-900 flex items-start space-x-2 text-xs text-red-600 dark:text-red-300">
-            <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
-            <span>{errorMessage}</span>
+          <div className="mb-5 p-4 rounded-2xl bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-900/60 text-xs text-red-700 dark:text-red-300 space-y-2">
+            <div className="flex items-start space-x-2">
+              <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5 text-red-600 dark:text-red-400" />
+              <div className="flex-1 font-medium leading-relaxed">
+                {errorMessage}
+              </div>
+            </div>
+
+            {errorDetails?.code === 'oauth_not_configured' && (
+              <div className="pt-2 border-t border-red-200 dark:border-red-900/40 text-[11px] text-red-600 dark:text-red-400">
+                Langkah penyelesaian: Tambah nilai <code>GOOGLE_CLIENT_ID</code> dan <code>GOOGLE_CLIENT_SECRET</code> ke dalam fail <code>.env.local</code>.
+              </div>
+            )}
+            {errorDetails?.code === 'unauthorized' && errorDetails.email && (
+              <div className="pt-2 border-t border-red-200 dark:border-red-900/40 text-[11px] text-red-600 dark:text-red-400">
+                E-mel yang disahkan oleh Google: <strong className="font-semibold underline">{errorDetails.email}</strong>. Sila pastikan e-mel ini wujud dalam lembaran <em>Employees</em> Google Sheets PPD Beluran dengan peranan admin.
+              </div>
+            )}
           </div>
         )}
 
         {/* Google Workspace Authentication Section */}
         <div className="space-y-4">
-          {/* Auto Detected Account Card (if found) */}
-          {detectedAccount ? (
+          {/* Last Used Account Card (if found) */}
+          {lastAccount ? (
             <div className="p-4 rounded-2xl bg-slate-50 dark:bg-gov-navy-900/80 border border-slate-200 dark:border-slate-800 space-y-3">
               <div className="flex items-center space-x-3">
                 <div className="w-10 h-10 rounded-full bg-gov-gold-500/20 text-gov-gold-600 dark:text-gov-gold-400 font-extrabold text-sm flex items-center justify-center flex-shrink-0 border border-gov-gold-500/30">
-                  {detectedAccount.email[0].toUpperCase()}
+                  {lastAccount.email[0].toUpperCase()}
                 </div>
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center space-x-1.5">
-                    <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
-                      Akaun Dikesan
+                    <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300">
+                      Akaun Terakhir
                     </span>
                   </div>
                   <p className="font-bold text-sm text-slate-900 dark:text-white truncate mt-0.5">
-                    {detectedAccount.name || detectedAccount.email}
+                    {lastAccount.name || lastAccount.email}
                   </p>
                   <p className="text-xs text-slate-500 dark:text-slate-400 truncate">
-                    {detectedAccount.email}
+                    {lastAccount.email}
                   </p>
                 </div>
               </div>
@@ -307,23 +310,23 @@ export const AdminLoginModal: React.FC<AdminLoginModalProps> = ({
               <div className="flex items-center space-x-2 pt-2 border-t border-slate-200/60 dark:border-slate-800">
                 <button
                   type="button"
-                  onClick={triggerGoogleDetection}
+                  onClick={() => handleGoogleOAuthLogin(lastAccount.email)}
                   disabled={isLoading}
-                  className="flex-1 py-2 px-3 rounded-xl bg-gov-gold-500 hover:bg-gov-gold-600 text-gov-navy-950 font-bold text-xs transition-all shadow-xs flex items-center justify-center space-x-1.5 disabled:opacity-50"
+                  className="flex-1 py-2.5 px-3 rounded-xl bg-gov-gold-500 hover:bg-gov-gold-600 text-gov-navy-950 font-bold text-xs transition-all shadow-xs flex items-center justify-center space-x-1.5 disabled:opacity-50 cursor-pointer"
                 >
                   {isLoading ? (
                     <Loader2 className="w-3.5 h-3.5 animate-spin" />
                   ) : (
                     <UserCheck className="w-3.5 h-3.5" />
                   )}
-                  <span>Teruskan sebagai Akaun Ini</span>
+                  <span>Sahkan sebagai Akaun Ini</span>
                 </button>
 
                 <button
                   type="button"
-                  onClick={clearDetectedAccount}
-                  className="p-2 rounded-xl text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-800 text-xs transition-colors"
-                  title="Tukar ke akaun Google lain"
+                  onClick={clearLastAccount}
+                  className="p-2.5 rounded-xl text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-800 text-xs transition-colors"
+                  title="Guna akaun Google lain"
                 >
                   <RefreshCw className="w-3.5 h-3.5" />
                 </button>
@@ -352,23 +355,23 @@ export const AdminLoginModal: React.FC<AdminLoginModalProps> = ({
                 </svg>
               </div>
               <h4 className="font-bold text-sm text-slate-900 dark:text-white">
-                Log Masuk Rasmi Google Workspace
+                Log Masuk Rasmi Google Workspace KPM
               </h4>
               <p className="text-xs text-slate-500 dark:text-slate-400 max-w-xs mx-auto leading-relaxed">
-                Log masuk pantas dan selamat menggunakan akaun rasmi Google Workspace KPM (@moe.gov.my). Tiada kata laluan diperlukan.
+                Log masuk yang disahkan terus oleh Google menggunakan akaun rasmi KPM (@moe.gov.my). Tiada kata laluan diperlukan dan identiti dilindungi sepenuhnya.
               </p>
             </div>
           )}
 
           {/* Google Identity Services Render Target (If Client ID set) */}
-          <div ref={googleBtnContainerRef} className="flex justify-center my-2" />
+          <div ref={googleBtnContainerRef} className="flex justify-center my-1" />
 
-          {/* Direct Detection Button */}
+          {/* Primary OAuth 2.0 Login Action Button */}
           <button
             type="button"
-            onClick={triggerGoogleDetection}
+            onClick={() => handleGoogleOAuthLogin()}
             disabled={isLoading}
-            className="w-full py-3 px-4 rounded-2xl bg-white dark:bg-gov-navy-900 text-slate-900 dark:text-white hover:bg-slate-50 dark:hover:bg-gov-navy-800 border-2 border-slate-200 dark:border-slate-800 hover:border-gov-gold-500 font-bold text-sm transition-all shadow-xs flex items-center justify-center space-x-2.5 disabled:opacity-50"
+            className="w-full py-3.5 px-4 rounded-2xl bg-white dark:bg-gov-navy-900 text-slate-900 dark:text-white hover:bg-slate-50 dark:hover:bg-gov-navy-800 border-2 border-slate-200 dark:border-slate-800 hover:border-gov-gold-500 font-bold text-sm transition-all shadow-xs flex items-center justify-center space-x-2.5 disabled:opacity-50 cursor-pointer group"
           >
             {isLoading ? (
               <Loader2 className="w-4 h-4 animate-spin text-gov-gold-500" />
@@ -394,16 +397,17 @@ export const AdminLoginModal: React.FC<AdminLoginModalProps> = ({
             )}
             <span>
               {isLoading
-                ? 'Mengesahkan Akaun...'
-                : detectedAccount
-                ? 'Kesan Akaun Google Baharu'
-                : 'Kesan & Log Masuk dengan Google'}
+                ? 'Menghubungkan ke Google...'
+                : lastAccount
+                ? 'Log Masuk dengan Akaun Lain'
+                : 'Log Masuk dengan Google Workspace'}
             </span>
+            <ArrowRight className="w-4 h-4 text-slate-400 group-hover:translate-x-0.5 transition-transform" />
           </button>
 
           <div className="flex items-center justify-center space-x-1.5 text-[11px] text-slate-400 dark:text-slate-500 pt-1">
             <ShieldCheck className="w-3.5 h-3.5 text-emerald-500" />
-            <span>Pengesahan selamat rasmi Google Workspace KPM</span>
+            <span>Pengesahan Google OAuth 2.0 & OpenID Connect</span>
           </div>
         </div>
       </div>

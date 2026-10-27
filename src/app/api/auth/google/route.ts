@@ -7,34 +7,50 @@ import { decodeJwt } from 'jose';
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json().catch(() => ({}));
-    let email = (body.email || '').trim().toLowerCase();
-    let name = body.name || '';
-    let picture = body.picture || '';
+    if (!body.credential) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'Pengesahan kriptografi Google diperlukan. Sila gunakan butang Log Masuk Google Workspace rasmi.',
+          code: 'CREDENTIAL_REQUIRED',
+        },
+        { status: 400 }
+      );
+    }
 
-    // If Google Identity Services ID token credential is provided
-    if (body.credential) {
-      try {
-        const decoded = decodeJwt(body.credential) as {
-          email?: string;
-          name?: string;
-          picture?: string;
-          hd?: string;
-        };
-        if (decoded?.email) {
-          email = decoded.email.trim().toLowerCase();
-          name = decoded.name || '';
-          picture = decoded.picture || '';
-        }
-      } catch (jwtErr) {
-        console.warn('Failed to decode Google JWT credential:', jwtErr);
+    let email = '';
+    let name = '';
+    let picture = '';
+
+    try {
+      const decoded = decodeJwt(body.credential) as {
+        email?: string;
+        name?: string;
+        picture?: string;
+        email_verified?: boolean;
+        hd?: string;
+      };
+      if (decoded?.email) {
+        email = decoded.email.trim().toLowerCase();
+        name = decoded.name || '';
+        picture = decoded.picture || '';
       }
+    } catch (jwtErr) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'Token kelayakan Google tidak sah atau telah diubah suai.',
+          code: 'INVALID_CREDENTIAL',
+        },
+        { status: 400 }
+      );
     }
 
     if (!email) {
       return NextResponse.json(
         {
           success: false,
-          error: 'Akaun Google Workspace tidak dapat dikesan. Sila pilih akaun Google anda.',
+          error: 'Akaun Google Workspace tidak dapat disahkan. Sila log masuk semula.',
           code: 'NO_EMAIL',
         },
         { status: 400 }
