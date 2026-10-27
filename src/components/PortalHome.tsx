@@ -127,6 +127,7 @@ export const PortalHome: React.FC<PortalHomeProps> = ({ initialData }) => {
         onSelectUnit={handleSelectUnit}
         onOpenLoginModal={() => setIsLoginModalOpen(true)}
         isAdminLoggedIn={isAdminLoggedIn}
+        onPreviewDocument={(doc) => setPreviewDoc(doc)}
       />
 
       {/* Main Content Area */}
@@ -165,6 +166,7 @@ export const PortalHome: React.FC<PortalHomeProps> = ({ initialData }) => {
                 const el = document.getElementById('unit');
                 if (el) el.scrollIntoView({ behavior: 'smooth' });
               }}
+              onPreviewDocument={(doc) => setPreviewDoc(doc)}
             />
 
             {/* Announcements */}

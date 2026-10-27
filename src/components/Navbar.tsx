@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
-import { Unit, UnitCategory, PortalMeta } from '@/types';
+import { Unit, UnitCategory, PortalMeta, DocumentRecord } from '@/types';
 import {
   Menu,
   X,
@@ -19,6 +19,7 @@ import {
   Type,
   Bell,
   Layers,
+  FileText,
 } from 'lucide-react';
 
 interface NavbarProps {
@@ -29,6 +30,7 @@ interface NavbarProps {
   onSelectUnit?: (unitId: string | null) => void;
   onOpenLoginModal: () => void;
   isAdminLoggedIn?: boolean;
+  onPreviewDocument?: (doc: DocumentRecord) => void;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
@@ -39,6 +41,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   onSelectUnit,
   onOpenLoginModal,
   isAdminLoggedIn,
+  onPreviewDocument,
 }) => {
   const [isDarkMode, setIsDarkMode] = useState(true);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -158,6 +161,32 @@ export const Navbar: React.FC<NavbarProps> = ({
       },
     ];
   }, [units, categories]);
+
+  const handleOpenCartaOrganisasi = () => {
+    const match = meta.cartaOrganisasiUrl?.match(/\/file\/d\/([a-zA-Z0-9_-]+)/);
+    const matchParam = meta.cartaOrganisasiUrl?.match(/[?&]id=([a-zA-Z0-9_-]+)/);
+    const fileId = (match && match[1]) || (matchParam && matchParam[1]) || '1plKZgpVPVOWggd_LS1O9TabTHYkqeU_T';
+
+    if (onPreviewDocument) {
+      onPreviewDocument({
+        documentId: fileId,
+        unitId: 'carta-organisasi',
+        title: 'Carta Organisasi Sektor Pembelajaran',
+        category: 'Struktur Organisasi',
+        description: 'Carta organisasi rasmi Sektor Pembelajaran PPD Beluran',
+        fileId,
+        fileName: 'Carta Organisasi Sektor Pembelajaran.pdf',
+        fileType: 'pdf',
+        fileSize: 'PDF',
+        displayOrder: 1,
+        status: 'active',
+        uploadedAt: new Date().toISOString(),
+        viewUrl: meta.cartaOrganisasiUrl,
+      });
+    } else {
+      window.open(meta.cartaOrganisasiUrl, '_blank', 'noopener,noreferrer');
+    }
+  };
 
   return (
     <header className="sticky top-0 z-40 bg-white/90 dark:bg-gov-navy-950/90 backdrop-blur-xl border-b border-slate-200/90 dark:border-slate-800/90 transition-colors shadow-xs">
@@ -342,15 +371,13 @@ export const Navbar: React.FC<NavbarProps> = ({
               Hebahan
             </a>
 
-            <a
-              href={meta.cartaOrganisasiUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="px-3.5 py-2 rounded-xl text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800/70 transition-colors flex items-center space-x-1"
+            <button
+              type="button"
+              onClick={handleOpenCartaOrganisasi}
+              className="px-3.5 py-2 rounded-xl text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800/70 transition-colors flex items-center space-x-1 cursor-pointer"
             >
               <span>Carta Organisasi</span>
-              <ExternalLink className="w-3 h-3 opacity-60" />
-            </a>
+            </button>
 
             {/* Dark Mode Toggle */}
             <button
@@ -426,6 +453,18 @@ export const Navbar: React.FC<NavbarProps> = ({
             <Bell className="w-4 h-4 text-gov-gold-500" />
             <span>Hebahan & Notis</span>
           </a>
+
+          <button
+            type="button"
+            onClick={() => {
+              setIsMobileMenuOpen(false);
+              handleOpenCartaOrganisasi();
+            }}
+            className="w-full text-left px-3.5 py-2.5 rounded-xl text-sm font-semibold text-slate-800 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center space-x-2 cursor-pointer"
+          >
+            <FileText className="w-4 h-4 text-gov-gold-500" />
+            <span>Carta Organisasi</span>
+          </button>
 
           <div className="pt-2 pb-1 px-3.5 text-xs font-bold text-gov-gold-600 dark:text-gov-gold-400 uppercase tracking-wider">
             Senarai Unit Mengikut Kategori
