@@ -1311,12 +1311,49 @@ export class GoogleSheetsService {
   }
 
   // --- System Info & Audit Logs ---
+  static async getAuditLogs(limit = 30): Promise<AuditLogEntry[]> {
+    const sheets = this.getClient();
+    if (!sheets) {
+      return [...globalMemoryDb.auditLogs].slice(0, limit);
+    }
+
+    try {
+      const res = await sheets.spreadsheets.values.get({
+        spreadsheetId: AppConfig.SPREADSHEET_ID,
+        range: `'${AppConfig.SHEET_AUDIT_LOG}'!A2:E`,
+      });
+
+      const rows = res.data.values || [];
+      if (rows.length === 0) {
+        return [...globalMemoryDb.auditLogs].slice(0, limit);
+      }
+
+      const logs: AuditLogEntry[] = rows
+        .map((r) => ({
+          timestamp: String(r[0] || ''),
+          action: String(r[1] || ''),
+          user: String(r[2] || ''),
+          status: (String(r[3] || 'INFO').toUpperCase() as 'SUCCESS' | 'FAILURE' | 'INFO'),
+          details: String(r[4] || ''),
+        }))
+        .filter((l) => l.timestamp && l.action)
+        .reverse()
+        .slice(0, limit);
+
+      return logs;
+    } catch (err) {
+      console.warn('Google Sheets getAuditLogs error:', err);
+      return [...globalMemoryDb.auditLogs].slice(0, limit);
+    }
+  }
+
   static async getSystemInfo(): Promise<SystemInfo> {
-    const [units, employees, documents, announcements] = await Promise.all([
+    const [units, employees, documents, announcements, auditLogs] = await Promise.all([
       this.getUnits(),
       this.getEmployees(),
       this.getDocuments(),
       this.getAnnouncements(),
+      this.getAuditLogs(30),
     ]);
 
     return {
@@ -1324,7 +1361,7 @@ export class GoogleSheetsService {
       employeeCount: employees.filter((e) => e.status === 'active').length,
       documentCount: documents.filter((d) => d.status === 'active').length,
       announcementCount: announcements.length,
-      auditLogs: [...globalMemoryDb.auditLogs].slice(0, 20),
+      auditLogs,
     };
   }
 }

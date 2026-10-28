@@ -68,6 +68,7 @@ export default function AdminDashboardPage() {
   // File Upload Processing States
   const [isUploading, setIsUploading] = useState(false);
   const [isSyncingDrive, setIsSyncingDrive] = useState(false);
+  const [isRefreshingLogs, setIsRefreshingLogs] = useState(false);
 
   const showToast = (message: string, type: 'success' | 'error' = 'success') => {
     setFeedback({ type, message });
@@ -115,6 +116,30 @@ export default function AdminDashboardPage() {
       console.error('Error loading admin data:', err);
     }
   }, [loadUnitContent]);
+
+  const refreshAuditLogs = useCallback(async () => {
+    setIsRefreshingLogs(true);
+    try {
+      const res = await fetch('/api/admin/audit-logs?limit=30');
+      const data = await res.json();
+      if (data.success && data.data) {
+        setSystemInfo((prev) => (prev ? { ...prev, auditLogs: data.data } : null));
+      }
+    } catch {
+      // silent
+    } finally {
+      setIsRefreshingLogs(false);
+    }
+  }, []);
+
+  // Poll audit logs in real-time when system tab is active
+  useEffect(() => {
+    if (activeTab === 'system' && isAuthenticated) {
+      refreshAuditLogs();
+      const interval = setInterval(refreshAuditLogs, 10000);
+      return () => clearInterval(interval);
+    }
+  }, [activeTab, isAuthenticated, refreshAuditLogs]);
 
   // Verify Admin Session on mount
   useEffect(() => {
@@ -1960,11 +1985,30 @@ export default function AdminDashboardPage() {
 
             {/* Audit Log Table */}
             <div className="bg-white dark:bg-gov-navy-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
-              <div className="px-5 py-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
-                <h3 className="font-bold text-sm text-slate-900 dark:text-white">
-                  Log Audit Terkini (SHEET_AUDIT_LOG)
-                </h3>
-                <span className="text-xs text-slate-400">20 aktiviti terkini</span>
+              <div className="px-5 py-4 border-b border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div>
+                  <div className="flex items-center space-x-2">
+                    <h3 className="font-bold text-sm text-slate-900 dark:text-white">
+                      Log Audit Terkini (SHEET_AUDIT_LOG)
+                    </h3>
+                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                      Langsung (Live Google Sheets)
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-slate-400 mt-0.5">
+                    Memaparkan rekod aktiviti terus daripada helaian rasmi &apos;Audit Log&apos; Google Sheets.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={refreshAuditLogs}
+                  disabled={isRefreshingLogs}
+                  className="inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-semibold transition-colors disabled:opacity-50 shrink-0 w-fit"
+                  title="Muat semula log audit dari Google Sheets"
+                >
+                  <RefreshCw className={`w-3.5 h-3.5 ${isRefreshingLogs ? 'animate-spin text-gov-gold-500' : ''}`} />
+                  <span>{isRefreshingLogs ? 'Menyemak...' : 'Muat Semula'}</span>
+                </button>
               </div>
               <div className="overflow-x-auto">
                 <table className="w-full text-left text-xs">
