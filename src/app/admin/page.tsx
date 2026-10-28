@@ -983,23 +983,47 @@ export default function AdminDashboardPage() {
 
                   <div>
                     <label className="block text-xs font-semibold mb-1 text-slate-600 dark:text-slate-300">
-                      URL / ID Fail Gambar Tenaga Kerja Unit
+                      Foto Tenaga Kerja Unit (1 keping foto: 1920 × 720 px)
                     </label>
-                    <input
-                      type="text"
-                      placeholder="URL imej terus (https://...) atau ID Google Drive gambar tenaga kerja unit"
-                      value={editingUnit.teamPhotoUrl || editingUnit.bannerFileId || ''}
-                      onChange={(e) =>
-                        setEditingUnit({
-                          ...editingUnit,
-                          teamPhotoUrl: e.target.value,
-                          bannerFileId: e.target.value,
-                        })
-                      }
-                      className="w-full px-3 py-2 rounded-lg bg-slate-50 dark:bg-gov-navy-950 border border-slate-200 dark:border-slate-800 text-xs focus:border-gov-gold-500 focus:outline-none"
-                    />
+                    <div className="flex gap-2 items-center">
+                      <input
+                        type="text"
+                        placeholder="URL imej terus (https://...) atau ID fail Google Drive"
+                        value={editingUnit.teamPhotoUrl || editingUnit.bannerFileId || ''}
+                        onChange={(e) =>
+                          setEditingUnit({
+                            ...editingUnit,
+                            teamPhotoUrl: e.target.value,
+                            bannerFileId: e.target.value,
+                          })
+                        }
+                        className="flex-1 px-3 py-2 rounded-lg bg-slate-50 dark:bg-gov-navy-950 border border-slate-200 dark:border-slate-800 text-xs focus:border-gov-gold-500 focus:outline-none"
+                      />
+                      <label className="cursor-pointer inline-flex items-center space-x-1.5 px-3 py-2 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-semibold transition-colors shrink-0">
+                        <Upload className="w-3.5 h-3.5" />
+                        <span>Muat Naik Foto</span>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          className="hidden"
+                          onChange={async (e) => {
+                            const file = e.target.files?.[0];
+                            if (file) {
+                              const res = await handleFileUpload(file);
+                              if (res) {
+                                setEditingUnit({
+                                  ...editingUnit,
+                                  teamPhotoUrl: `https://lh3.googleusercontent.com/d/${res.fileId}`,
+                                  bannerFileId: res.fileId,
+                                });
+                              }
+                            }
+                          }}
+                        />
+                      </label>
+                    </div>
                     <span className="text-[10px] text-slate-400 mt-0.5 block">
-                      Foto berkumpulan rasmi pegawai & staf unit untuk dipaparkan di profil unit.
+                      Disyorkan 1 keping foto rasmi bersaiz 1920 × 720 piksel (nisbah 8:3) agar muat sempurna tanpa terpotong.
                     </span>
                   </div>
 

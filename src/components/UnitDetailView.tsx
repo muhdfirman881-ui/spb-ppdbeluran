@@ -119,43 +119,43 @@ export const UnitDetailView: React.FC<UnitDetailViewProps> = ({
               <span>Gambar Tenaga Kerja Unit</span>
             </div>
             <span className="text-xs text-slate-500 dark:text-slate-400 font-medium">
-              Warga & Barisan Pegawai {unit.unitName}
+              Warga &amp; Barisan Pegawai {unit.unitName} (1920 × 720 px)
             </span>
           </div>
 
-          {/* Photo Display Card */}
+          {/* Photo Display Card - Precisely calibrated for 1920 x 720 px */}
           {teamPhotoSource ? (
-            <div className="relative rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-800 bg-slate-900 max-h-[500px] group">
+            <div className="relative w-full aspect-[1920/720] rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-800 bg-slate-900 group shadow-sm">
               <img
                 src={teamPhotoSource}
                 alt={`Gambar Tenaga Kerja ${unit.unitName}`}
                 referrerPolicy="no-referrer"
                 loading="lazy"
                 decoding="async"
-                className="w-full h-full object-cover max-h-[500px] group-hover:scale-[1.02] transition-transform duration-500"
+                className="w-full h-full object-cover object-center group-hover:scale-[1.01] transition-transform duration-500"
                 onError={(e) => {
                   (e.target as HTMLElement).style.display = 'none';
                 }}
               />
-              <div className="absolute inset-x-0 bottom-0 p-4 bg-gradient-to-t from-black/85 via-black/40 to-transparent flex items-center justify-between">
-                <span className="text-xs font-semibold text-white drop-shadow">
+              <div className="absolute inset-x-0 bottom-0 p-4 sm:p-5 bg-gradient-to-t from-black/80 via-black/30 to-transparent flex items-center justify-between pointer-events-none">
+                <span className="text-xs sm:text-sm font-semibold text-white drop-shadow">
                   Foto Rasmi Tenaga Kerja {unit.unitName}
                 </span>
-                <span className="text-[11px] px-2.5 py-0.5 rounded-full bg-gov-gold-500/90 text-gov-navy-950 font-bold">
+                <span className="text-[10px] sm:text-xs px-2.5 py-0.5 rounded-full bg-gov-gold-500 text-gov-navy-950 font-bold shadow-xs">
                   Sektor Pembelajaran
                 </span>
               </div>
             </div>
           ) : (
-            <div className="relative rounded-2xl border-2 border-dashed border-slate-200 dark:border-slate-800 p-8 sm:p-12 text-center bg-slate-50/60 dark:bg-gov-navy-950/40">
-              <div className="w-16 h-16 rounded-2xl bg-gov-gold-500/10 flex items-center justify-center mx-auto mb-3 text-gov-gold-500">
-                <Users className="w-8 h-8" />
+            <div className="relative w-full aspect-[1920/720] min-h-[220px] rounded-2xl border-2 border-dashed border-slate-200 dark:border-slate-800 p-8 sm:p-12 text-center bg-slate-50/60 dark:bg-gov-navy-950/40 flex flex-col items-center justify-center">
+              <div className="w-14 h-14 rounded-2xl bg-gov-gold-500/10 flex items-center justify-center mx-auto mb-3 text-gov-gold-500">
+                <Users className="w-7 h-7" />
               </div>
               <h3 className="font-bold text-base text-slate-800 dark:text-white">
                 Foto Rasmi Tenaga Kerja {unit.unitName}
               </h3>
               <p className="text-xs text-slate-500 dark:text-slate-400 mt-1.5 max-w-md mx-auto leading-relaxed">
-                Gambar barisan tenaga kerja dan pegawai bagi unit ini boleh dimuat naik dan dikemaskini melalui Panel Pentadbir.
+                Belum ada foto rasmi tenaga kerja dimuat naik. Muat naik 1 keping foto bersaiz <strong>1920 × 720 piksel</strong> melalui Panel Pentadbir.
               </p>
             </div>
           )}
