@@ -116,7 +116,7 @@ export const UnitDetailView: React.FC<UnitDetailViewProps> = ({
               <span>Gambar Tenaga Kerja Unit</span>
             </div>
             <span className="text-xs text-slate-500 dark:text-slate-400 font-medium">
-              Warga &amp; Barisan Pegawai {unit.unitName} (1920 × 720 px)
+              Warga &amp; Barisan Pegawai {unit.unitName}
             </span>
           </div>
 
@@ -159,7 +159,7 @@ export const UnitDetailView: React.FC<UnitDetailViewProps> = ({
                 Foto Rasmi Tenaga Kerja {unit.unitName}
               </h3>
               <p className="text-xs text-slate-500 dark:text-slate-400 mt-1.5 max-w-md mx-auto leading-relaxed">
-                Belum ada foto rasmi tenaga kerja dimuat naik. Muat naik 1 keping foto bersaiz <strong>1920 × 720 piksel</strong> melalui Panel Pentadbir.
+                Belum ada foto rasmi tenaga kerja dimuat naik untuk unit ini.
               </p>
             </div>
           )}
