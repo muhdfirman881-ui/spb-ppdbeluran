@@ -89,9 +89,7 @@ export const UnitDetailView: React.FC<UnitDetailViewProps> = ({
         {/* Unit Hero Banner */}
         <div className="bg-white dark:bg-gov-navy-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-6 sm:p-10 shadow-sm relative overflow-hidden">
           <div className="relative z-10 max-w-4xl">
-            <span className="inline-block px-3 py-1 rounded-full text-xs font-bold tracking-wider uppercase bg-gov-gold-500/15 text-gov-gold-600 dark:text-gov-gold-400 mb-3 border border-gov-gold-500/30">
-              {unit.unitCode} &bull; Sektor Pembelajaran
-            </span>
+
             <h1 className="font-serif text-3xl sm:text-5xl font-extrabold text-gov-navy-900 dark:text-white tracking-tight leading-tight">
               {unit.title || unit.unitName}
             </h1>
