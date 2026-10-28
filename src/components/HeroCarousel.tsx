@@ -78,18 +78,19 @@ export const HeroCarousel: React.FC<HeroCarouselProps> = ({ slides }) => {
       onTouchEnd={handleTouchEnd}
       aria-label="Album Hero Portal"
     >
-      {/* Slider Viewport - Responsive across mobile, tablet, laptop, and wide screens */}
-      <div className="relative h-48 xs:h-56 sm:h-80 md:h-[420px] lg:h-[500px] xl:h-[560px] w-full">
+      {/* Slider Viewport - Locked to 1920 x 720 px (8:3) aspect ratio for 0% cropping across all screen sizes */}
+      <div className="relative w-full aspect-[1920/720]">
         {slides.map((slide, idx) => {
           const isActive = idx === activeIndex;
 
           return (
             <div
               key={slide.id || idx}
-              className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${isActive ? 'opacity-100 z-10' : 'opacity-0 z-0 pointer-events-none'
-                }`}
+              className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${
+                isActive ? 'opacity-100 z-10' : 'opacity-0 z-0 pointer-events-none'
+              }`}
             >
-              {/* Image with subtle Ken Burns zoom */}
+              {/* Full uncropped 1920x720 banner image */}
               <div className="w-full h-full overflow-hidden">
                 <img
                   src={getOptimizedImageUrl(slide.imageUrl)}
@@ -99,8 +100,7 @@ export const HeroCarousel: React.FC<HeroCarouselProps> = ({ slides }) => {
                   decoding={idx === 0 ? 'sync' : 'async'}
                   // @ts-ignore fetchPriority is supported in React 18.3
                   fetchPriority={idx === 0 ? 'high' : 'low'}
-                  className={`w-full h-full object-cover object-center transform transition-transform duration-[8000ms] ease-out ${isActive ? 'scale-105' : 'scale-100'
-                    }`}
+                  className="w-full h-full object-cover object-center"
                   onError={(e) => {
                     const target = e.target as HTMLImageElement;
                     if (!target.dataset.triedDirect && slide.imageUrl.includes('lh3.googleusercontent.com')) {
@@ -118,9 +118,9 @@ export const HeroCarousel: React.FC<HeroCarouselProps> = ({ slides }) => {
               <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent pointer-events-none" />
 
               {/* Badge Overlay */}
-              <div className="absolute bottom-10 sm:bottom-16 left-4 sm:left-12 lg:left-20 z-20">
-                <div className="inline-flex items-center space-x-1.5 sm:space-x-2 px-2.5 py-1 sm:px-3.5 sm:py-1.5 rounded-full text-[10px] sm:text-xs font-bold tracking-wider uppercase bg-gov-gold-500 text-gov-navy-950 shadow-md border border-gov-gold-400">
-                  <Sparkles className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-gov-navy-950" />
+              <div className="absolute bottom-8 xs:bottom-10 sm:bottom-14 lg:bottom-16 left-3 sm:left-12 lg:left-20 z-20">
+                <div className="inline-flex items-center space-x-1.5 sm:space-x-2 px-2 py-0.5 sm:px-3.5 sm:py-1.5 rounded-full text-[9px] xs:text-[10px] sm:text-xs font-bold tracking-wider uppercase bg-gov-gold-500 text-gov-navy-950 shadow-md border border-gov-gold-400">
+                  <Sparkles className="w-2.5 h-2.5 sm:w-3.5 sm:h-3.5 text-gov-navy-950" />
                   <span>Barisan Kepimpinan Sektor</span>
                 </div>
               </div>

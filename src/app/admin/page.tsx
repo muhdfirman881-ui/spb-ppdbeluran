@@ -856,7 +856,7 @@ export default function AdminDashboardPage() {
                   Pengurusan Album Sorotan Hero
                 </h2>
                 <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400">
-                  Slaid banner yang berpusing secara automatik di bahagian atas halaman portal.
+                  Slaid banner yang berpusing secara automatik di bahagian atas halaman portal. Saiz disyorkan: <strong>1920 &times; 720 px</strong> (nisbah 8:3 tanpa potongan skrin).
                 </p>
               </div>
 
@@ -889,7 +889,7 @@ export default function AdminDashboardPage() {
                   key={slide.id || idx}
                   className="bg-white dark:bg-gov-navy-900 rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden shadow-xs flex flex-col justify-between"
                 >
-                  <div className="relative h-44 w-full bg-slate-100 dark:bg-slate-950">
+                  <div className="relative aspect-[1920/720] w-full bg-slate-100 dark:bg-slate-950">
                     <img
                       src={getOptimizedImageUrl(slide.imageUrl)}
                       alt=""
