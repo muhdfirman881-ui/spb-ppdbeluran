@@ -99,24 +99,15 @@ export const HeroCarousel: React.FC<HeroCarouselProps> = ({ slides }) => {
                 />
               </div>
 
-              {/* Multi-layer Cinematic Gradient Overlays */}
-              <div className="absolute inset-0 bg-gradient-to-t from-gov-navy-950 via-gov-navy-950/50 to-transparent" />
-              <div className="absolute inset-0 bg-gradient-to-r from-gov-navy-950/90 via-gov-navy-950/40 to-transparent" />
+              {/* Subtle Bottom Vignette for Timeline Legibility */}
+              <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent pointer-events-none" />
 
-              {/* Slide Content Caption */}
-              <div className="absolute bottom-16 sm:bottom-20 left-6 sm:left-12 lg:left-20 max-w-3xl z-20 space-y-3">
-                <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full text-xs font-bold tracking-wider uppercase bg-gov-gold-500/90 text-gov-navy-950 backdrop-blur-md shadow-sm">
+              {/* Badge Overlay */}
+              <div className="absolute bottom-14 sm:bottom-16 left-6 sm:left-12 lg:left-20 z-20">
+                <div className="inline-flex items-center space-x-2 px-3.5 py-1.5 rounded-full text-xs font-bold tracking-wider uppercase bg-gov-gold-500 text-gov-navy-950 shadow-md border border-gov-gold-400">
                   <Sparkles className="w-3.5 h-3.5 text-gov-navy-950" />
-                  <span>Sorotan Rasmi Sektor</span>
+                  <span>Barisan Kepimpinan Sektor</span>
                 </div>
-
-                <h2 className="font-serif text-2xl sm:text-4xl lg:text-5xl font-extrabold text-white tracking-tight drop-shadow-md leading-tight">
-                  {slide.fileName || 'Inisiatif Pengupayaan Pedagogi & Kurikulum'}
-                </h2>
-
-                <p className="text-xs sm:text-base text-slate-300 max-w-xl drop-shadow line-clamp-2">
-                  Memperkasa kecemerlangan kepimpinan instruksional sekolah dan bimbingan guru daerah Beluran.
-                </p>
               </div>
             </div>
           );
