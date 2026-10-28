@@ -83,8 +83,6 @@ export const Footer: React.FC<FooterProps> = ({ meta, onOpenLoginModal }) => {
     'https://maps.google.com/maps?q=Pejabat+Pendidikan+Daerah+Beluran,+Peti+Surat+27,+90107+Beluran,+Sabah&t=&z=15&ie=UTF8&iwloc=&output=embed';
   const googleMapsDirectionsUrl =
     'https://www.google.com/maps/search/?api=1&query=Pejabat+Pendidikan+Daerah+Beluran+Sabah';
-  const wazeDirectionsUrl =
-    'https://waze.com/ul?q=Pejabat+Pendidikan+Daerah+Beluran';
 
   return (
     <footer className="relative bg-gov-navy-950 text-slate-300 border-t border-gov-navy-900 mt-auto overflow-hidden">
@@ -272,16 +270,6 @@ export const Footer: React.FC<FooterProps> = ({ meta, onOpenLoginModal }) => {
                     <Navigation className="w-3.5 h-3.5" />
                     <span>Arah Google Maps</span>
                     <ExternalLink className="w-3 h-3 opacity-70" />
-                  </a>
-
-                  <a
-                    href={wazeDirectionsUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold border border-slate-700 transition-all duration-200"
-                  >
-                    <Compass className="w-3.5 h-3.5 text-sky-400" />
-                    <span>Waze</span>
                   </a>
                 </div>
 
