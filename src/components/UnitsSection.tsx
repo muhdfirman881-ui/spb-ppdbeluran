@@ -217,16 +217,16 @@ export const UnitsSection: React.FC<UnitsSectionProps> = ({
           {filteredHierarchy.map(({ category: cat, units: catUnits }) => (
             <div key={cat.categoryId} className="space-y-6">
               {/* Category Header */}
-              <div className="border-b border-slate-200 dark:border-slate-800 pb-3 flex flex-col sm:flex-row sm:items-baseline justify-between">
+              <div className="border-b border-slate-200 dark:border-slate-800 pb-3 flex flex-col sm:flex-row sm:items-baseline justify-between gap-2">
                 <div>
-                  <h3 className="font-serif text-2xl font-bold text-gov-navy-900 dark:text-white tracking-tight">
+                  <h3 className="font-serif text-2xl sm:text-3xl lg:text-4xl font-extrabold text-gov-navy-900 dark:text-white tracking-tight leading-tight">
                     {cat.categoryName}
                   </h3>
-                  <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">
+                  <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1.5">
                     {cat.description}
                   </p>
                 </div>
-                <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 mt-2 sm:mt-0 w-fit">
+                <span className="text-xs sm:text-sm font-bold px-3 py-1 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 mt-2 sm:mt-0 w-fit shrink-0 border border-slate-200 dark:border-slate-700">
                   {catUnits.length} Unit
                 </span>
               </div>
