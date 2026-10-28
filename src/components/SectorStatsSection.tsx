@@ -32,12 +32,64 @@ export const SectorStatsSection: React.FC<SectorStatsSectionProps> = ({
     uploadedAt: new Date().toISOString(),
   };
 
+  const gredPurataDoc: DocumentRecord = {
+    documentId: '1WLFAd4JT9yNI7J_eOPscOCQonYUZvTAn',
+    fileId: '1WLFAd4JT9yNI7J_eOPscOCQonYUZvTAn',
+    unitId: 'peperiksaan',
+    title: 'GRED PURATA SPM PPD BELURAN',
+    fileName: 'GRED_PURATA_SPM_PPD_BELURAN.pdf',
+    fileType: 'pdf',
+    fileSize: 'PDF',
+    category: 'Analisis Peperiksaan Awam',
+    description: 'Pencapaian Gred Purata Daerah (GPD) calon Sijil Pelajaran Malaysia daerah Beluran.',
+    displayOrder: 2,
+    status: 'active',
+    uploadedAt: new Date().toISOString(),
+  };
+
+  const purataLulusDoc: DocumentRecord = {
+    documentId: '1LkxOVM5U9rRZiic8uX59ZUO4xm-kCutn',
+    fileId: '1LkxOVM5U9rRZiic8uX59ZUO4xm-kCutn',
+    unitId: 'peperiksaan',
+    title: 'PURATA LULUS MATA PELAJARAN TERAS SPM PPD BELURAN',
+    fileName: 'PURATA_LULUS_MATA_PELAJARAN_TERAS_SPM.pdf',
+    fileType: 'pdf',
+    fileSize: 'PDF',
+    category: 'Analisis Peperiksaan Awam',
+    description: 'Kadar kelulusan & penguasaan bagi mata pelajaran SPM seluruh daerah Beluran.',
+    displayOrder: 3,
+    status: 'active',
+    uploadedAt: new Date().toISOString(),
+  };
+
   const handleOpenIppk = () => {
     if (onPreviewDocument) {
       onPreviewDocument(ippkDoc);
     } else {
       window.open(
         'https://drive.google.com/file/d/1pgomDtyB-4YcQBhJ4-VqO7Ytn-vToz-F/view?usp=drive_link',
+        '_blank'
+      );
+    }
+  };
+
+  const handleOpenGredPurata = () => {
+    if (onPreviewDocument) {
+      onPreviewDocument(gredPurataDoc);
+    } else {
+      window.open(
+        'https://drive.google.com/file/d/1WLFAd4JT9yNI7J_eOPscOCQonYUZvTAn/view?usp=drive_link',
+        '_blank'
+      );
+    }
+  };
+
+  const handleOpenPurataLulus = () => {
+    if (onPreviewDocument) {
+      onPreviewDocument(purataLulusDoc);
+    } else {
+      window.open(
+        'https://drive.google.com/file/d/1LkxOVM5U9rRZiic8uX59ZUO4xm-kCutn/view?usp=drive_link',
         '_blank'
       );
     }
@@ -94,7 +146,10 @@ export const SectorStatsSection: React.FC<SectorStatsSectionProps> = ({
         </div>
 
         {/* KAD 2: GRED PURATA SPM */}
-        <div className="group relative bg-white dark:bg-gov-navy-900 rounded-2xl p-6 sm:p-7 border border-slate-200/90 dark:border-slate-800 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1 overflow-hidden flex flex-col justify-between">
+        <div
+          onClick={handleOpenGredPurata}
+          className="group relative bg-white dark:bg-gov-navy-900 rounded-2xl p-6 sm:p-7 border border-slate-200/90 dark:border-slate-800 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1 overflow-hidden cursor-pointer flex flex-col justify-between"
+        >
           {/* Top accent line */}
           <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-gov-gold-500/20 via-gov-gold-500 to-gov-gold-500/20 opacity-70 group-hover:opacity-100 transition-opacity" />
 
@@ -122,7 +177,7 @@ export const SectorStatsSection: React.FC<SectorStatsSectionProps> = ({
               </span>
             </div>
 
-            <h4 className="font-bold text-base text-slate-900 dark:text-white mt-1.5 leading-snug">
+            <h4 className="font-bold text-base text-slate-900 dark:text-white mt-1.5 leading-snug group-hover:text-gov-gold-600 dark:group-hover:text-gov-gold-400 transition-colors">
               Gred Purata SPM
             </h4>
 
@@ -131,14 +186,17 @@ export const SectorStatsSection: React.FC<SectorStatsSectionProps> = ({
             </p>
           </div>
 
-          <div className="mt-5 pt-3 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between text-xs font-semibold text-slate-400">
-            <span>Prestasi Peperiksaan Awam</span>
-            <TrendingUp className="w-4 h-4 text-emerald-500" />
+          <div className="mt-5 pt-3 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between text-xs font-bold text-gov-gold-600 dark:text-gov-gold-400">
+            <span>Lihat Dokumen</span>
+            <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
           </div>
         </div>
 
         {/* KAD 3: PURATA LULUS MATA PELAJARAN */}
-        <div className="group relative bg-white dark:bg-gov-navy-900 rounded-2xl p-6 sm:p-7 border border-slate-200/90 dark:border-slate-800 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1 overflow-hidden flex flex-col justify-between">
+        <div
+          onClick={handleOpenPurataLulus}
+          className="group relative bg-white dark:bg-gov-navy-900 rounded-2xl p-6 sm:p-7 border border-slate-200/90 dark:border-slate-800 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1 overflow-hidden cursor-pointer flex flex-col justify-between"
+        >
           {/* Top accent line */}
           <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-gov-gold-500/20 via-gov-gold-500 to-gov-gold-500/20 opacity-70 group-hover:opacity-100 transition-opacity" />
 
@@ -166,7 +224,7 @@ export const SectorStatsSection: React.FC<SectorStatsSectionProps> = ({
               </span>
             </div>
 
-            <h4 className="font-bold text-base text-slate-900 dark:text-white mt-1.5 leading-snug">
+            <h4 className="font-bold text-base text-slate-900 dark:text-white mt-1.5 leading-snug group-hover:text-gov-gold-600 dark:group-hover:text-gov-gold-400 transition-colors">
               Purata Lulus Mata Pelajaran Teras
             </h4>
 
@@ -175,9 +233,9 @@ export const SectorStatsSection: React.FC<SectorStatsSectionProps> = ({
             </p>
           </div>
 
-          <div className="mt-5 pt-3 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between text-xs font-semibold text-slate-400">
-            <span>Kadar Kelayakan Sijil</span>
-            <span className="text-xs font-bold text-emerald-500">Layak Sijil</span>
+          <div className="mt-5 pt-3 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between text-xs font-bold text-gov-gold-600 dark:text-gov-gold-400">
+            <span>Lihat Dokumen</span>
+            <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
           </div>
         </div>
       </div>
