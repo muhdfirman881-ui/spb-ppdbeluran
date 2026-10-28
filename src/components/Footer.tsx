@@ -91,28 +91,26 @@ export const Footer: React.FC<FooterProps> = ({ meta, onOpenLoginModal }) => {
       <div className="absolute bottom-0 right-10 w-80 h-80 bg-gov-navy-700/20 rounded-full blur-3xl pointer-events-none" />
 
       {/* Main Footer Container */}
-      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-14 pb-10">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-start">
-          
+      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 sm:pt-14 pb-6 sm:pb-10">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-8 lg:gap-12 items-start">
+
           {/* Left Column: Identity, Description, Contact Details & Admin Access (6 cols) */}
-          <div className="lg:col-span-6 space-y-5">
+          <div className="lg:col-span-6 space-y-4 sm:space-y-5">
             {/* Branding Header - Exact dimension constraint on logo */}
-            <div className="flex items-center space-x-3.5">
+            <div className="flex items-center space-x-3 sm:space-x-3.5">
               <div
-                className="w-12 h-12 flex-shrink-0 flex items-center justify-center overflow-hidden"
-                style={{ width: '48px', height: '48px', maxWidth: '48px', maxHeight: '48px' }}
+                className="w-10 h-10 sm:w-12 sm:h-12 flex-shrink-0 flex items-center justify-center overflow-hidden"
               >
                 <img
                   src={meta.espbLogoUrl}
                   alt="Logo E-SPb"
                   referrerPolicy="no-referrer"
-                  style={{ width: '48px', height: '48px', maxWidth: '48px', maxHeight: '48px' }}
-                  className="w-12 h-12 object-contain drop-shadow"
+                  className="w-full h-full object-contain drop-shadow"
                 />
               </div>
               <div>
                 <div className="flex items-center space-x-2">
-                  <h3 className="font-serif text-2xl font-extrabold text-white tracking-tight leading-tight">
+                  <h3 className="font-serif text-xl sm:text-2xl font-extrabold text-white tracking-tight leading-tight">
                     {meta.portalName}
                   </h3>
                 </div>
@@ -130,7 +128,7 @@ export const Footer: React.FC<FooterProps> = ({ meta, onOpenLoginModal }) => {
             </p>
 
             {/* Quick Contact Badges */}
-            <div className="space-y-3 pt-1">
+            <div className="space-y-2.5 sm:space-y-3 pt-0.5 sm:pt-1">
               <div className="flex items-start space-x-3 text-xs text-slate-300">
                 <div className="p-2 rounded-xl bg-gov-navy-900 border border-slate-800 text-gov-gold-400 flex-shrink-0 mt-0.5">
                   <MapPin className="w-4 h-4" />
@@ -141,8 +139,8 @@ export const Footer: React.FC<FooterProps> = ({ meta, onOpenLoginModal }) => {
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
-                <div className="flex items-center space-x-2.5 p-3 rounded-xl bg-gov-navy-900/90 border border-slate-800 text-xs">
+              <div className="grid grid-cols-1 xs:grid-cols-2 gap-2.5 sm:gap-3 pt-1">
+                <div className="flex items-center space-x-2.5 p-2.5 sm:p-3 rounded-xl bg-gov-navy-900/90 border border-slate-800 text-xs">
                   <Phone className="w-4 h-4 text-gov-gold-400 flex-shrink-0" />
                   <div>
                     <div className="text-[10px] uppercase font-bold text-slate-400">Talian Telefon</div>
@@ -150,7 +148,7 @@ export const Footer: React.FC<FooterProps> = ({ meta, onOpenLoginModal }) => {
                   </div>
                 </div>
 
-                <div className="flex items-center space-x-2.5 p-3 rounded-xl bg-gov-navy-900/90 border border-slate-800 text-xs">
+                <div className="flex items-center space-x-2.5 p-2.5 sm:p-3 rounded-xl bg-gov-navy-900/90 border border-slate-800 text-xs">
                   <Mail className="w-4 h-4 text-gov-gold-400 flex-shrink-0" />
                   <div className="overflow-hidden">
                     <div className="text-[10px] uppercase font-bold text-slate-400">E-mel Rasmi</div>
@@ -167,8 +165,8 @@ export const Footer: React.FC<FooterProps> = ({ meta, onOpenLoginModal }) => {
             </div>
 
             {/* Operating Hours & Admin Login Button */}
-            <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 pt-1">
-              <div className="flex-1 p-3.5 rounded-xl bg-gov-navy-900/90 border border-gov-navy-800 flex items-center justify-between">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5 sm:gap-3 pt-1">
+              <div className="flex-1 p-3 sm:p-3.5 rounded-xl bg-gov-navy-900/90 border border-gov-navy-800 flex items-center justify-between">
                 <div className="flex items-center space-x-2.5">
                   <Clock className="w-4 h-4 text-gov-gold-400" />
                   <div className="text-xs">
@@ -177,16 +175,14 @@ export const Footer: React.FC<FooterProps> = ({ meta, onOpenLoginModal }) => {
                   </div>
                 </div>
                 <span
-                  className={`inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-semibold border ${
-                    isOpenNow
+                  className={`inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-semibold border ${isOpenNow
                       ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30'
                       : 'bg-amber-500/10 text-amber-400 border-amber-500/30'
-                  }`}
+                    }`}
                 >
                   <span
-                    className={`w-1.5 h-1.5 rounded-full mr-1.5 animate-pulse ${
-                      isOpenNow ? 'bg-emerald-400' : 'bg-amber-400'
-                    }`}
+                    className={`w-1.5 h-1.5 rounded-full mr-1.5 animate-pulse ${isOpenNow ? 'bg-emerald-400' : 'bg-amber-400'
+                      }`}
                   />
                   {isOpenNow ? 'Dibuka' : 'Tutup'}
                 </span>
@@ -194,7 +190,7 @@ export const Footer: React.FC<FooterProps> = ({ meta, onOpenLoginModal }) => {
 
               <button
                 onClick={onOpenLoginModal}
-                className="inline-flex items-center justify-center space-x-2 px-4 py-3 rounded-xl bg-gov-navy-900 hover:bg-gov-gold-500 text-gov-gold-400 hover:text-gov-navy-950 font-bold text-xs border border-gov-gold-500/30 transition-all duration-200 shadow-sm"
+                className="inline-flex items-center justify-center space-x-2 px-4 py-2.5 sm:py-3 rounded-xl bg-gov-navy-900 hover:bg-gov-gold-500 text-gov-gold-400 hover:text-gov-navy-950 font-bold text-xs border border-gov-gold-500/30 transition-all duration-200 shadow-sm"
               >
                 <ShieldCheck className="w-4 h-4" />
                 <span>Log Masuk Pegawai</span>
@@ -203,7 +199,7 @@ export const Footer: React.FC<FooterProps> = ({ meta, onOpenLoginModal }) => {
           </div>
 
           {/* Right Column: Interactive Map Pejabat Pendidikan Daerah Beluran (6 cols) */}
-          <div className="lg:col-span-6 space-y-3">
+          <div className="lg:col-span-6 space-y-2.5 sm:space-y-3">
             <div className="flex items-center justify-between">
               <h4 className="text-xs font-bold uppercase tracking-wider text-gov-gold-400 flex items-center space-x-2">
                 <Compass className="w-4 h-4" />
@@ -220,7 +216,7 @@ export const Footer: React.FC<FooterProps> = ({ meta, onOpenLoginModal }) => {
               className="relative rounded-2xl overflow-hidden border border-slate-800 bg-gov-navy-900 shadow-2xl group"
             >
               {/* Map Viewport */}
-              <div className="relative w-full h-64 sm:h-72 bg-slate-900 flex items-center justify-center">
+              <div className="relative w-full h-48 sm:h-64 lg:h-72 bg-slate-900 flex items-center justify-center">
                 {isMapLoaded ? (
                   <iframe
                     title="Peta Pejabat Pendidikan Daerah Beluran"
@@ -301,7 +297,7 @@ export const Footer: React.FC<FooterProps> = ({ meta, onOpenLoginModal }) => {
         </div>
 
         {/* Bottom Sub-Footer */}
-        <div className="mt-12 pt-6 border-t border-slate-800/80 flex flex-col md:flex-row items-center justify-between text-xs text-slate-400 gap-4">
+        <div className="mt-8 sm:mt-12 pt-5 sm:pt-6 border-t border-slate-800/80 flex flex-col md:flex-row items-center justify-between text-xs text-slate-400 gap-3 sm:gap-4 text-center md:text-left">
           <div className="flex flex-wrap items-center justify-center md:justify-start gap-y-1 gap-x-4">
             <p className="font-semibold text-slate-200">
               Aplikasi dibangunkan oleh Pasukan Teknikal ICT Sekolah PPD Beluran

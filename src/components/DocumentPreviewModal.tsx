@@ -182,14 +182,14 @@ export const DocumentPreviewModal: React.FC<DocumentPreviewModalProps> = ({
           />
 
           {/* Bottom Fallback Bar */}
-          <div className="px-4 py-2 bg-slate-100 dark:bg-gov-navy-900 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 flex-shrink-0">
+          <div className="px-3 sm:px-4 py-2 bg-slate-100 dark:bg-gov-navy-900 border-t border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-1.5 sm:gap-4 text-[11px] sm:text-xs text-slate-500 dark:text-slate-400 flex-shrink-0">
             <div className="flex items-center space-x-1.5">
               <AlertCircle className="w-3.5 h-3.5 text-gov-gold-500 flex-shrink-0" />
               <span>
                 Dokumen tidak terpapar dengan sempurna pada peranti anda?
               </span>
             </div>
-            <div className="flex items-center space-x-3">
+            <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1">
               <a
                 href={streamUrl}
                 target="_blank"

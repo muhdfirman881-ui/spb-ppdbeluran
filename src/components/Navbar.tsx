@@ -191,13 +191,13 @@ export const Navbar: React.FC<NavbarProps> = ({
   return (
     <header className="sticky top-0 z-40 bg-white/90 dark:bg-gov-navy-950/90 backdrop-blur-xl border-b border-slate-200/90 dark:border-slate-800/90 transition-colors shadow-xs">
       {/* Top Sovereign Bar with Live Clock & Accessibility */}
-      <div className="bg-gov-navy-950 text-slate-300 text-xs py-1.5 px-4 sm:px-8 border-b border-gov-navy-900 select-none">
-        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-1.5">
+      <div className="bg-gov-navy-950 text-slate-300 text-xs py-1 sm:py-1.5 px-3 sm:px-6 lg:px-8 border-b border-gov-navy-900 select-none">
+        <div className="max-w-7xl mx-auto flex flex-row justify-between items-center gap-2">
           {/* Left: Ministry identity & Operational Status */}
-          <div className="flex items-center space-x-3 text-[11px] sm:text-xs">
-            <span className="flex items-center space-x-1.5">
-              <span className="w-2 h-2 rounded-full bg-gov-gold-400 animate-pulse" />
-              <span className="font-semibold text-white tracking-wide">
+          <div className="flex items-center space-x-2 sm:space-x-3 text-[10px] sm:text-xs min-w-0">
+            <span className="flex items-center space-x-1.5 min-w-0">
+              <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-gov-gold-400 animate-pulse shrink-0" />
+              <span className="font-semibold text-white tracking-wide truncate">
                 {meta.ministry} &bull; {meta.state}
               </span>
             </span>
@@ -205,11 +205,10 @@ export const Navbar: React.FC<NavbarProps> = ({
             <span className="hidden lg:inline text-slate-600">|</span>
 
             {/* Live Operational Status */}
-            <span className="hidden lg:inline-flex items-center space-x-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-gov-navy-900 border border-slate-800">
+            <span className="hidden lg:inline-flex items-center space-x-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-gov-navy-900 border border-slate-800 shrink-0">
               <span
-                className={`w-1.5 h-1.5 rounded-full ${
-                  isOfficeOpen ? 'bg-emerald-400' : 'bg-amber-400'
-                }`}
+                className={`w-1.5 h-1.5 rounded-full ${isOfficeOpen ? 'bg-emerald-400' : 'bg-amber-400'
+                  }`}
               />
               <span className={isOfficeOpen ? 'text-emerald-400' : 'text-amber-400'}>
                 {isOfficeOpen ? 'Kaunter Dibuka (8 AM - 5 PM)' : 'Luar Waktu Pejabat'}
@@ -218,7 +217,7 @@ export const Navbar: React.FC<NavbarProps> = ({
           </div>
 
           {/* Right: Live Clock & Accessibility Text Controls */}
-          <div className="flex items-center space-x-3 text-[11px] sm:text-xs text-slate-400">
+          <div className="flex items-center space-x-2 sm:space-x-3 text-[11px] sm:text-xs text-slate-400 shrink-0">
             {mytTime && (
               <div className="hidden sm:flex items-center space-x-1 font-mono text-slate-300">
                 <Clock className="w-3.5 h-3.5 text-gov-gold-400" />
@@ -245,32 +244,31 @@ export const Navbar: React.FC<NavbarProps> = ({
       </div>
 
       {/* Main Navigation Bar */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-20">
+      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
+        <div className="flex justify-between items-center h-14 sm:h-16 lg:h-20">
           {/* Logo & Portal Branding - No White Background on Icon */}
           <div
             onClick={() => handleUnitClick(null)}
-            className="flex items-center space-x-3.5 cursor-pointer group select-none"
+            className="flex items-center space-x-2.5 sm:space-x-3.5 cursor-pointer group select-none min-w-0 pr-2"
           >
-            <div className="relative w-12 h-12 flex-shrink-0 flex items-center justify-center p-0.5 group-hover:scale-105 transition-transform">
+            <div className="relative w-9 h-9 sm:w-11 sm:h-11 lg:w-12 lg:h-12 flex-shrink-0 flex items-center justify-center p-0.5 group-hover:scale-105 transition-transform">
               <img
                 src={meta.espbLogoUrl}
                 alt="Logo E-SPb PPDB"
                 referrerPolicy="no-referrer"
-                style={{ width: '44px', height: '44px', maxWidth: '44px', maxHeight: '44px' }}
                 className="w-full h-full object-contain drop-shadow"
                 onError={(e) => {
                   (e.target as HTMLElement).style.display = 'none';
                 }}
               />
             </div>
-            <div className="flex flex-col">
+            <div className="flex flex-col min-w-0">
               <div className="flex items-center space-x-2">
-                <span className="font-serif text-xl sm:text-2xl font-extrabold tracking-tight text-gov-navy-900 dark:text-white group-hover:text-gov-gold-600 dark:group-hover:text-gov-gold-400 transition-colors leading-none">
+                <span className="font-serif text-lg sm:text-xl lg:text-2xl font-extrabold tracking-tight text-gov-navy-900 dark:text-white group-hover:text-gov-gold-600 dark:group-hover:text-gov-gold-400 transition-colors leading-none truncate">
                   {meta.portalName}
                 </span>
               </div>
-              <span className="text-xs sm:text-sm font-medium text-slate-500 dark:text-slate-400 mt-1">
+              <span className="text-[11px] sm:text-xs lg:text-sm font-medium text-slate-500 dark:text-slate-400 mt-0.5 sm:mt-1 truncate">
                 {meta.sectorName} &bull; {meta.district}
               </span>
             </div>
@@ -280,11 +278,10 @@ export const Navbar: React.FC<NavbarProps> = ({
           <nav className="hidden md:flex items-center space-x-1 lg:space-x-2">
             <button
               onClick={() => handleUnitClick(null)}
-              className={`px-3.5 py-2 rounded-xl text-sm font-medium transition-all ${
-                !activeUnitId
+              className={`px-3.5 py-2 rounded-xl text-sm font-medium transition-all ${!activeUnitId
                   ? 'bg-gov-gold-500/10 text-gov-gold-600 dark:text-gov-gold-400 font-bold'
                   : 'text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800/70'
-              }`}
+                }`}
             >
               Laman Utama
             </button>
@@ -293,11 +290,10 @@ export const Navbar: React.FC<NavbarProps> = ({
             <div className="relative">
               <button
                 onClick={() => setIsUnitsDropdownOpen(!isUnitsDropdownOpen)}
-                className={`flex items-center space-x-1 px-3.5 py-2 rounded-xl text-sm font-medium transition-all ${
-                  activeUnitId
+                className={`flex items-center space-x-1 px-3.5 py-2 rounded-xl text-sm font-medium transition-all ${activeUnitId
                     ? 'bg-gov-gold-500/10 text-gov-gold-600 dark:text-gov-gold-400 font-bold'
                     : 'text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800/70'
-                }`}
+                  }`}
               >
                 <span>Unit & Sektor</span>
                 <ChevronDown className="w-4 h-4 ml-0.5 opacity-70" />
@@ -339,11 +335,10 @@ export const Navbar: React.FC<NavbarProps> = ({
                                       handleUnitClick(u.unitId);
                                     }
                                   }}
-                                  className={`w-full text-left px-3 py-2 rounded-xl text-xs sm:text-sm flex items-center justify-between transition-colors ${
-                                    activeUnitId === u.unitId
+                                  className={`w-full text-left px-3 py-2 rounded-xl text-xs sm:text-sm flex items-center justify-between transition-colors ${activeUnitId === u.unitId
                                       ? 'bg-gov-gold-500/15 text-gov-gold-600 dark:text-gov-gold-400 font-semibold'
                                       : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
-                                  }`}
+                                    }`}
                                 >
                                   <div className="flex items-center space-x-2.5 truncate">
                                     <Folder className="w-3.5 h-3.5 text-gov-gold-500 flex-shrink-0" />
@@ -436,41 +431,43 @@ export const Navbar: React.FC<NavbarProps> = ({
 
       {/* Mobile Drawer */}
       {isMobileMenuOpen && (
-        <div className="md:hidden border-t border-slate-200 dark:border-slate-800 bg-white/95 dark:bg-gov-navy-950/95 backdrop-blur-xl px-4 pt-3 pb-6 space-y-2 animate-in slide-in-from-top-2">
-          <button
-            onClick={() => handleUnitClick(null)}
-            className="w-full text-left px-3.5 py-2.5 rounded-xl text-sm font-semibold text-slate-800 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center space-x-2"
-          >
-            <Home className="w-4 h-4 text-gov-gold-500" />
-            <span>Laman Utama</span>
-          </button>
+        <div className="md:hidden border-t border-slate-200 dark:border-slate-800 bg-white/95 dark:bg-gov-navy-950/95 backdrop-blur-xl px-4 pt-3 pb-5 space-y-2 max-h-[calc(100dvh-5.5rem)] overflow-y-auto animate-in slide-in-from-top-2">
+          <div className="grid grid-cols-3 gap-1.5">
+            <button
+              onClick={() => handleUnitClick(null)}
+              className="text-center px-2 py-2 rounded-xl text-xs font-semibold text-slate-800 dark:text-slate-200 bg-slate-100/80 dark:bg-gov-navy-900 hover:bg-slate-200 dark:hover:bg-slate-800 flex flex-col items-center justify-center gap-1"
+            >
+              <Home className="w-4 h-4 text-gov-gold-500" />
+              <span>Utama</span>
+            </button>
 
-          <a
-            href="#hebahan"
-            onClick={() => setIsMobileMenuOpen(false)}
-            className="w-full text-left px-3.5 py-2.5 rounded-xl text-sm font-semibold text-slate-800 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center space-x-2"
-          >
-            <Bell className="w-4 h-4 text-gov-gold-500" />
-            <span>Hebahan & Notis</span>
-          </a>
+            <a
+              href="#hebahan"
+              onClick={() => setIsMobileMenuOpen(false)}
+              className="text-center px-2 py-2 rounded-xl text-xs font-semibold text-slate-800 dark:text-slate-200 bg-slate-100/80 dark:bg-gov-navy-900 hover:bg-slate-200 dark:hover:bg-slate-800 flex flex-col items-center justify-center gap-1"
+            >
+              <Bell className="w-4 h-4 text-gov-gold-500" />
+              <span>Hebahan</span>
+            </a>
 
-          <button
-            type="button"
-            onClick={() => {
-              setIsMobileMenuOpen(false);
-              handleOpenCartaOrganisasi();
-            }}
-            className="w-full text-left px-3.5 py-2.5 rounded-xl text-sm font-semibold text-slate-800 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center space-x-2 cursor-pointer"
-          >
-            <FileText className="w-4 h-4 text-gov-gold-500" />
-            <span>Carta Organisasi</span>
-          </button>
+            <button
+              type="button"
+              onClick={() => {
+                setIsMobileMenuOpen(false);
+                handleOpenCartaOrganisasi();
+              }}
+              className="text-center px-2 py-2 rounded-xl text-xs font-semibold text-slate-800 dark:text-slate-200 bg-slate-100/80 dark:bg-gov-navy-900 hover:bg-slate-200 dark:hover:bg-slate-800 flex flex-col items-center justify-center gap-1 cursor-pointer"
+            >
+              <FileText className="w-4 h-4 text-gov-gold-500" />
+              <span>Carta</span>
+            </button>
+          </div>
 
-          <div className="pt-2 pb-1 px-3.5 text-xs font-bold text-gov-gold-600 dark:text-gov-gold-400 uppercase tracking-wider">
+          <div className="pt-1.5 pb-0.5 px-1 text-[11px] font-bold text-gov-gold-600 dark:text-gov-gold-400 uppercase tracking-wider">
             Senarai Unit Mengikut Kategori
           </div>
 
-          <div className="max-h-60 overflow-y-auto pl-2 space-y-3">
+          <div className="max-h-56 overflow-y-auto space-y-2.5 pr-1">
             {groupedUnits.map((group) => {
               if (!group.units || group.units.length === 0) return null;
               return (
@@ -478,6 +475,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                   <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wide px-2 py-0.5 bg-slate-100 dark:bg-gov-navy-900 rounded">
                     {group.categoryName}
                   </div>
+                  <div className="grid grid-cols-1 xs:grid-cols-2 gap-1">
                     {group.units.map((u) => {
                       const isExt = Boolean(u.externalLink);
                       return (
@@ -491,22 +489,22 @@ export const Navbar: React.FC<NavbarProps> = ({
                               handleUnitClick(u.unitId);
                             }
                           }}
-                          className={`w-full text-left px-3 py-1.5 rounded-lg text-xs flex items-center justify-between ${
-                            activeUnitId === u.unitId
-                              ? 'bg-gov-gold-500/10 text-gov-gold-600 dark:text-gov-gold-400 font-semibold'
-                              : 'text-slate-700 dark:text-slate-300'
-                          }`}
+                          className={`w-full text-left px-2.5 py-1.5 rounded-lg text-xs flex items-center justify-between ${activeUnitId === u.unitId
+                              ? 'bg-gov-gold-500/15 text-gov-gold-600 dark:text-gov-gold-400 font-semibold'
+                              : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-gov-navy-900/60'
+                            }`}
                         >
                           <div className="flex items-center space-x-2 truncate">
                             <Folder className="w-3 h-3 text-gov-gold-500 flex-shrink-0" />
                             <span className="truncate">{u.unitName}</span>
                           </div>
                           {isExt && (
-                            <ExternalLink className="w-3 h-3 text-gov-gold-500 flex-shrink-0 opacity-70 ml-2" />
+                            <ExternalLink className="w-3 h-3 text-gov-gold-500 flex-shrink-0 opacity-70 ml-1" />
                           )}
                         </button>
                       );
                     })}
+                  </div>
                 </div>
               );
             })}

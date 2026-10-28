@@ -59,14 +59,14 @@ export const QuickAccessSection: React.FC<QuickAccessSectionProps> = ({
   });
 
   return (
-    <section className="py-14 sm:py-16 bg-white dark:bg-gov-navy-950 border-b border-slate-200 dark:border-slate-800/80 transition-colors">
+    <section className="py-6 sm:py-12 lg:py-16 bg-white dark:bg-gov-navy-950 border-b border-slate-200 dark:border-slate-800/80 transition-colors">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center space-x-2 text-xs font-bold text-gov-gold-600 dark:text-gov-gold-400 uppercase tracking-wider mb-8">
+        <div className="flex items-center space-x-2 text-xs font-bold text-gov-gold-600 dark:text-gov-gold-400 uppercase tracking-wider mb-4 sm:mb-8">
           <Bookmark className="w-4 h-4 text-gov-gold-500" />
           <span>Pautan Pantas &amp; Perkhidmatan Digital Sektor</span>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-5 sm:gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-5 lg:gap-6">
           {activeServices.map((item, idx) => {
             const isSiscInternal = item.link === '#unit';
             const driveFileId = extractDriveFileId(item.link);
@@ -78,22 +78,24 @@ export const QuickAccessSection: React.FC<QuickAccessSectionProps> = ({
                 <div
                   key={idx}
                   onClick={onSelectSisc}
-                  className="card-spotlight group relative bg-slate-50 dark:bg-gov-navy-900/60 hover:bg-white dark:hover:bg-gov-navy-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 hover:border-gov-gold-500/60 shadow-xs hover:shadow-xl transition-all duration-300 cursor-pointer flex flex-col justify-between"
+                  className="card-spotlight group relative bg-slate-50 dark:bg-gov-navy-900/60 hover:bg-white dark:hover:bg-gov-navy-900 p-3.5 sm:p-6 rounded-2xl border border-slate-200 dark:border-slate-800 hover:border-gov-gold-500/60 shadow-xs hover:shadow-xl transition-all duration-300 cursor-pointer flex flex-row sm:flex-col items-center sm:items-stretch justify-between gap-3.5 sm:gap-0"
                 >
-                  <div>
-                    <div className="w-12 h-12 rounded-2xl bg-gov-gold-500/10 border border-gov-gold-500/20 flex items-center justify-center shadow-xs mb-5 group-hover:scale-110 transition-transform">
+                  <div className="flex items-center sm:block gap-3.5 min-w-0 flex-1">
+                    <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl bg-gov-gold-500/10 border border-gov-gold-500/20 flex items-center justify-center shadow-xs sm:mb-5 shrink-0 group-hover:scale-110 transition-transform">
                       {getIcon(item.icon)}
                     </div>
-                    <h3 className="font-bold text-base sm:text-lg text-slate-900 dark:text-white group-hover:text-gov-gold-600 dark:group-hover:text-gov-gold-400 transition-colors leading-snug">
-                      {item.title}
-                    </h3>
-                    <p className="mt-2 text-xs sm:text-sm text-slate-600 dark:text-slate-400 line-clamp-2 leading-relaxed">
-                      {item.description}
-                    </p>
+                    <div className="min-w-0 flex-1">
+                      <h3 className="font-bold text-sm sm:text-lg text-slate-900 dark:text-white group-hover:text-gov-gold-600 dark:group-hover:text-gov-gold-400 transition-colors leading-snug truncate sm:whitespace-normal">
+                        {item.title}
+                      </h3>
+                      <p className="mt-0.5 sm:mt-2 text-xs sm:text-sm text-slate-600 dark:text-slate-400 line-clamp-1 sm:line-clamp-2 leading-relaxed">
+                        {item.description}
+                      </p>
+                    </div>
                   </div>
-                  <div className="mt-6 pt-3 border-t border-slate-200/60 dark:border-slate-800/60 flex items-center text-xs font-bold text-gov-gold-600 dark:text-gov-gold-400">
-                    <span>Lihat Maklumat Bimbingan</span>
-                    <ChevronRight className="w-4 h-4 ml-1 group-hover:translate-x-1.5 transition-transform" />
+                  <div className="sm:mt-6 sm:pt-3 sm:border-t sm:border-slate-200/60 dark:sm:border-slate-800/60 flex items-center text-xs font-bold text-gov-gold-600 dark:text-gov-gold-400 shrink-0">
+                    <span className="hidden sm:inline">Lihat Maklumat Bimbingan</span>
+                    <ChevronRight className="w-4 h-4 sm:ml-1 group-hover:translate-x-1.5 transition-transform" />
                   </div>
                 </div>
               );
@@ -122,23 +124,25 @@ export const QuickAccessSection: React.FC<QuickAccessSectionProps> = ({
                       viewUrl: item.link,
                     });
                   }}
-                  className="card-spotlight group relative bg-slate-50 dark:bg-gov-navy-900/60 hover:bg-white dark:hover:bg-gov-navy-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 hover:border-gov-gold-500/60 shadow-xs hover:shadow-xl transition-all duration-300 cursor-pointer flex flex-col justify-between"
+                  className="card-spotlight group relative bg-slate-50 dark:bg-gov-navy-900/60 hover:bg-white dark:hover:bg-gov-navy-900 p-3.5 sm:p-6 rounded-2xl border border-slate-200 dark:border-slate-800 hover:border-gov-gold-500/60 shadow-xs hover:shadow-xl transition-all duration-300 cursor-pointer flex flex-row sm:flex-col items-center sm:items-stretch justify-between gap-3.5 sm:gap-0"
                 >
-                  <div>
-                    <div className="w-12 h-12 rounded-2xl bg-gov-gold-500/10 border border-gov-gold-500/20 flex items-center justify-center shadow-xs mb-5 group-hover:scale-110 transition-transform">
+                  <div className="flex items-center sm:block gap-3.5 min-w-0 flex-1">
+                    <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl bg-gov-gold-500/10 border border-gov-gold-500/20 flex items-center justify-center shadow-xs sm:mb-5 shrink-0 group-hover:scale-110 transition-transform">
                       {getIcon(item.icon)}
                     </div>
-                    <h3 className="font-bold text-base sm:text-lg text-slate-900 dark:text-white group-hover:text-gov-gold-600 dark:group-hover:text-gov-gold-400 transition-colors flex items-center justify-between leading-snug">
-                      <span>{item.title}</span>
-                      <Eye className="w-4 h-4 opacity-50 group-hover:opacity-100 transition-opacity text-gov-gold-500" />
-                    </h3>
-                    <p className="mt-2 text-xs sm:text-sm text-slate-600 dark:text-slate-400 line-clamp-2 leading-relaxed">
-                      {item.description}
-                    </p>
+                    <div className="min-w-0 flex-1">
+                      <h3 className="font-bold text-sm sm:text-lg text-slate-900 dark:text-white group-hover:text-gov-gold-600 dark:group-hover:text-gov-gold-400 transition-colors flex items-center justify-between leading-snug">
+                        <span className="truncate sm:whitespace-normal">{item.title}</span>
+                        <Eye className="hidden sm:block w-4 h-4 opacity-50 group-hover:opacity-100 transition-opacity text-gov-gold-500 shrink-0 ml-2" />
+                      </h3>
+                      <p className="mt-0.5 sm:mt-2 text-xs sm:text-sm text-slate-600 dark:text-slate-400 line-clamp-1 sm:line-clamp-2 leading-relaxed">
+                        {item.description}
+                      </p>
+                    </div>
                   </div>
-                  <div className="mt-6 pt-3 border-t border-slate-200/60 dark:border-slate-800/60 flex items-center text-xs font-bold text-gov-gold-600 dark:text-gov-gold-400">
-                    <span>Lihat Dokumen</span>
-                    <ChevronRight className="w-4 h-4 ml-1 group-hover:translate-x-1.5 transition-transform" />
+                  <div className="sm:mt-6 sm:pt-3 sm:border-t sm:border-slate-200/60 dark:sm:border-slate-800/60 flex items-center text-xs font-bold text-gov-gold-600 dark:text-gov-gold-400 shrink-0">
+                    <span className="hidden sm:inline">Lihat Dokumen</span>
+                    <ChevronRight className="w-4 h-4 sm:ml-1 group-hover:translate-x-1.5 transition-transform" />
                   </div>
                 </div>
               );
@@ -151,23 +155,27 @@ export const QuickAccessSection: React.FC<QuickAccessSectionProps> = ({
                 href={item.link}
                 target={item.external ? '_blank' : '_self'}
                 rel="noopener noreferrer"
-                className="card-spotlight group relative bg-slate-50 dark:bg-gov-navy-900/60 hover:bg-white dark:hover:bg-gov-navy-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 hover:border-gov-gold-500/60 shadow-xs hover:shadow-xl transition-all duration-300 flex flex-col justify-between"
+                className="card-spotlight group relative bg-slate-50 dark:bg-gov-navy-900/60 hover:bg-white dark:hover:bg-gov-navy-900 p-3.5 sm:p-6 rounded-2xl border border-slate-200 dark:border-slate-800 hover:border-gov-gold-500/60 shadow-xs hover:shadow-xl transition-all duration-300 flex flex-row sm:flex-col items-center sm:items-stretch justify-between gap-3.5 sm:gap-0"
               >
-                <div>
-                  <div className="w-12 h-12 rounded-2xl bg-gov-gold-500/10 border border-gov-gold-500/20 flex items-center justify-center shadow-xs mb-5 group-hover:scale-110 transition-transform">
+                <div className="flex items-center sm:block gap-3.5 min-w-0 flex-1">
+                  <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl bg-gov-gold-500/10 border border-gov-gold-500/20 flex items-center justify-center shadow-xs sm:mb-5 shrink-0 group-hover:scale-110 transition-transform">
                     {getIcon(item.icon)}
                   </div>
-                  <h3 className="font-bold text-base sm:text-lg text-slate-900 dark:text-white group-hover:text-gov-gold-600 dark:group-hover:text-gov-gold-400 transition-colors flex items-center justify-between leading-snug">
-                    <span>{item.title}</span>
-                    {item.external && <ExternalLink className="w-4 h-4 opacity-50 group-hover:opacity-100 transition-opacity" />}
-                  </h3>
-                  <p className="mt-2 text-xs sm:text-sm text-slate-600 dark:text-slate-400 line-clamp-2 leading-relaxed">
-                    {item.description}
-                  </p>
+                  <div className="min-w-0 flex-1">
+                    <h3 className="font-bold text-sm sm:text-lg text-slate-900 dark:text-white group-hover:text-gov-gold-600 dark:group-hover:text-gov-gold-400 transition-colors flex items-center justify-between leading-snug">
+                      <span className="truncate sm:whitespace-normal">{item.title}</span>
+                      {item.external && (
+                        <ExternalLink className="hidden sm:block w-4 h-4 opacity-50 group-hover:opacity-100 transition-opacity shrink-0 ml-2" />
+                      )}
+                    </h3>
+                    <p className="mt-0.5 sm:mt-2 text-xs sm:text-sm text-slate-600 dark:text-slate-400 line-clamp-1 sm:line-clamp-2 leading-relaxed">
+                      {item.description}
+                    </p>
+                  </div>
                 </div>
-                <div className="mt-6 pt-3 border-t border-slate-200/60 dark:border-slate-800/60 flex items-center text-xs font-bold text-gov-gold-600 dark:text-gov-gold-400">
-                  <span>Akses Sistem Digital</span>
-                  <ChevronRight className="w-4 h-4 ml-1 group-hover:translate-x-1.5 transition-transform" />
+                <div className="sm:mt-6 sm:pt-3 sm:border-t sm:border-slate-200/60 dark:sm:border-slate-800/60 flex items-center text-xs font-bold text-gov-gold-600 dark:text-gov-gold-400 shrink-0">
+                  <span className="hidden sm:inline">Akses Sistem Digital</span>
+                  <ChevronRight className="w-4 h-4 sm:ml-1 group-hover:translate-x-1.5 transition-transform" />
                 </div>
               </a>
             );

@@ -177,3 +177,14 @@ html.dark .glass-panel {
   background-clip: padding-box;
 }
 
+/* Hide scrollbars for horizontal snap carousels & filter pills */
+.scrollbar-none {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
+}
+
+

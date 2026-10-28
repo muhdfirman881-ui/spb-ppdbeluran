@@ -61,13 +61,13 @@ export const UnitDetailView: React.FC<UnitDetailViewProps> = ({
   }, [documents, selectedDocCategory, searchQuery]);
 
   return (
-    <div className="py-8 sm:py-12 bg-slate-50 dark:bg-gov-navy-950 min-h-screen transition-colors">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8 sm:space-y-10">
+    <div className="py-5 sm:py-10 lg:py-12 bg-slate-50 dark:bg-gov-navy-950 min-h-screen transition-colors">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-5 sm:space-y-8 lg:space-y-10">
         {/* Back Navigation Bar */}
-        <div className="flex items-center justify-between">
+        <div className="flex flex-wrap items-center justify-between gap-2.5">
           <button
             onClick={onBack}
-            className="inline-flex items-center space-x-2 px-4 py-2.5 rounded-xl bg-white dark:bg-gov-navy-900 border border-slate-200 dark:border-slate-800 text-sm font-bold text-slate-700 dark:text-slate-200 hover:text-gov-gold-600 dark:hover:text-gov-gold-400 hover:border-gov-gold-500/50 shadow-xs transition-all"
+            className="inline-flex items-center space-x-2 px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-xl bg-white dark:bg-gov-navy-900 border border-slate-200 dark:border-slate-800 text-xs sm:text-sm font-bold text-slate-700 dark:text-slate-200 hover:text-gov-gold-600 dark:hover:text-gov-gold-400 hover:border-gov-gold-500/50 shadow-xs transition-all"
           >
             <ArrowLeft className="w-4 h-4" />
             <span>Kembali ke Senarai Unit</span>
@@ -78,26 +78,26 @@ export const UnitDetailView: React.FC<UnitDetailViewProps> = ({
               href={unit.externalLink}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center space-x-2 px-4 py-2.5 rounded-xl bg-gov-gold-500 hover:bg-gov-gold-600 text-gov-navy-950 text-xs sm:text-sm font-bold shadow-xs transition-all"
+              className="inline-flex items-center space-x-1.5 sm:space-x-2 px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-xl bg-gov-gold-500 hover:bg-gov-gold-600 text-gov-navy-950 text-xs sm:text-sm font-bold shadow-xs transition-all"
             >
               <span>Portal Luaran Unit</span>
-              <ExternalLink className="w-4 h-4" />
+              <ExternalLink className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             </a>
           )}
         </div>
 
         {/* Unit Hero Banner */}
-        <div className="bg-white dark:bg-gov-navy-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-6 sm:p-10 shadow-sm relative overflow-hidden">
+        <div className="bg-white dark:bg-gov-navy-900 rounded-2xl sm:rounded-3xl border border-slate-200 dark:border-slate-800 p-5 sm:p-8 lg:p-10 shadow-sm relative overflow-hidden">
           <div className="relative z-10 max-w-4xl">
 
-            <h1 className="font-serif text-3xl sm:text-5xl font-extrabold text-gov-navy-900 dark:text-white tracking-tight leading-tight">
+            <h1 className="font-serif text-2xl sm:text-4xl lg:text-5xl font-extrabold text-gov-navy-900 dark:text-white tracking-tight leading-tight">
               {unit.title || unit.unitName}
             </h1>
-            <p className="mt-3 text-base sm:text-lg text-slate-600 dark:text-slate-300 font-medium leading-relaxed">
+            <p className="mt-2 sm:mt-3 text-sm sm:text-lg text-slate-600 dark:text-slate-300 font-medium leading-relaxed">
               {unit.tagline}
             </p>
             {unit.description && unit.description !== unit.tagline && (
-              <p className="mt-4 text-sm text-slate-500 dark:text-slate-400 leading-relaxed border-t border-slate-100 dark:border-slate-800 pt-4">
+              <p className="mt-3 sm:mt-4 text-xs sm:text-sm text-slate-500 dark:text-slate-400 leading-relaxed border-t border-slate-100 dark:border-slate-800 pt-3 sm:pt-4">
                 {unit.description}
               </p>
             )}
@@ -107,20 +107,20 @@ export const UnitDetailView: React.FC<UnitDetailViewProps> = ({
 
 
         {/* Unit Team Photo Showcase (Tempat Gambar Tenaga Unit) */}
-        <div className="bg-white dark:bg-gov-navy-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-6 sm:p-8 shadow-xs space-y-4">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 dark:border-slate-800 pb-4">
-            <div className="flex items-center space-x-2.5 text-gov-navy-900 dark:text-white font-bold text-lg">
-              <Camera className="w-5 h-5 text-gov-gold-500" />
+        <div className="bg-white dark:bg-gov-navy-900 rounded-2xl sm:rounded-3xl border border-slate-200 dark:border-slate-800 p-4 sm:p-6 lg:p-8 shadow-xs space-y-3 sm:space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 sm:gap-2 border-b border-slate-100 dark:border-slate-800 pb-3 sm:pb-4">
+            <div className="flex items-center space-x-2 sm:space-x-2.5 text-gov-navy-900 dark:text-white font-bold text-base sm:text-lg">
+              <Camera className="w-4 h-4 sm:w-5 sm:h-5 text-gov-gold-500" />
               <span>Gambar Tenaga Kerja Unit</span>
             </div>
-            <span className="text-xs text-slate-500 dark:text-slate-400 font-medium">
+            <span className="text-[11px] sm:text-xs text-slate-500 dark:text-slate-400 font-medium">
               Warga &amp; Barisan Pegawai {unit.unitName}
             </span>
           </div>
 
           {/* Photo Display Card - Precisely calibrated for 1920 x 720 px */}
           {teamPhotoSource ? (
-            <div className="relative w-full aspect-[1920/720] rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-800 bg-slate-900 group shadow-sm">
+            <div className="relative w-full aspect-[1920/720] rounded-xl sm:rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-800 bg-slate-900 group shadow-sm">
               <img
                 src={teamPhotoSource}
                 alt={`Gambar Tenaga Kerja ${unit.unitName}`}
@@ -139,24 +139,24 @@ export const UnitDetailView: React.FC<UnitDetailViewProps> = ({
                   }
                 }}
               />
-              <div className="absolute inset-x-0 bottom-0 p-4 sm:p-5 bg-gradient-to-t from-black/80 via-black/30 to-transparent flex items-center justify-between pointer-events-none">
-                <span className="text-xs sm:text-sm font-semibold text-white drop-shadow">
+              <div className="absolute inset-x-0 bottom-0 p-3 sm:p-5 bg-gradient-to-t from-black/80 via-black/30 to-transparent flex items-center justify-between pointer-events-none">
+                <span className="text-[11px] sm:text-sm font-semibold text-white drop-shadow truncate pr-2">
                   Foto Rasmi Tenaga Kerja {unit.unitName}
                 </span>
-                <span className="text-[10px] sm:text-xs px-2.5 py-0.5 rounded-full bg-gov-gold-500 text-gov-navy-950 font-bold shadow-xs">
+                <span className="text-[10px] sm:text-xs px-2 sm:px-2.5 py-0.5 rounded-full bg-gov-gold-500 text-gov-navy-950 font-bold shadow-xs shrink-0">
                   Sektor Pembelajaran
                 </span>
               </div>
             </div>
           ) : (
-            <div className="relative w-full aspect-[1920/720] min-h-[220px] rounded-2xl border-2 border-dashed border-slate-200 dark:border-slate-800 p-8 sm:p-12 text-center bg-slate-50/60 dark:bg-gov-navy-950/40 flex flex-col items-center justify-center">
-              <div className="w-14 h-14 rounded-2xl bg-gov-gold-500/10 flex items-center justify-center mx-auto mb-3 text-gov-gold-500">
-                <Users className="w-7 h-7" />
+            <div className="relative w-full min-h-[140px] sm:min-h-[200px] sm:aspect-[1920/720] rounded-xl sm:rounded-2xl border-2 border-dashed border-slate-200 dark:border-slate-800 p-5 sm:p-10 text-center bg-slate-50/60 dark:bg-gov-navy-950/40 flex flex-col items-center justify-center">
+              <div className="w-11 h-11 sm:w-14 sm:h-14 rounded-2xl bg-gov-gold-500/10 flex items-center justify-center mx-auto mb-2.5 sm:mb-3 text-gov-gold-500">
+                <Users className="w-5 h-5 sm:w-7 sm:h-7" />
               </div>
-              <h3 className="font-bold text-base text-slate-800 dark:text-white">
+              <h3 className="font-bold text-sm sm:text-base text-slate-800 dark:text-white">
                 Foto Rasmi Tenaga Kerja {unit.unitName}
               </h3>
-              <p className="text-xs text-slate-500 dark:text-slate-400 mt-1.5 max-w-md mx-auto leading-relaxed">
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 max-w-md mx-auto leading-relaxed">
                 Belum ada foto rasmi tenaga kerja dimuat naik untuk unit ini.
               </p>
             </div>
@@ -165,7 +165,7 @@ export const UnitDetailView: React.FC<UnitDetailViewProps> = ({
 
         {/* Document Repository */}
         {(unit.hasDocuments || documents.length > 0) && (
-          <div className="bg-white dark:bg-gov-navy-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-6 sm:p-8 shadow-xs space-y-6">
+          <div className="bg-white dark:bg-gov-navy-900 rounded-2xl sm:rounded-3xl border border-slate-200 dark:border-slate-800 p-4 sm:p-6 lg:p-8 shadow-xs space-y-4 sm:space-y-6">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div className="flex items-center space-x-2.5 text-gov-navy-900 dark:text-white font-bold text-lg">
                 <FolderOpen className="w-5 h-5 text-gov-gold-500" />

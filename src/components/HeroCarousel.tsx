@@ -13,6 +13,7 @@ export const HeroCarousel: React.FC<HeroCarouselProps> = ({ slides }) => {
   const [activeIndex, setActiveIndex] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
   const [progress, setProgress] = useState(0);
+  const touchStartX = useRef<number | null>(null);
   const slideDuration = 6000; // 6 seconds per slide
   const intervalStep = 50; // update progress every 50ms
 
@@ -52,6 +53,20 @@ export const HeroCarousel: React.FC<HeroCarouselProps> = ({ slides }) => {
     changeSlide((activeIndex - 1 + total) % total);
   };
 
+  const handleTouchStart = (e: React.TouchEvent) => {
+    touchStartX.current = e.touches[0].clientX;
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    if (touchStartX.current === null || total <= 1) return;
+    const deltaX = e.changedTouches[0].clientX - touchStartX.current;
+    if (Math.abs(deltaX) > 40) {
+      if (deltaX < 0) goToNext();
+      else goToPrev();
+    }
+    touchStartX.current = null;
+  };
+
   if (total === 0) return null;
 
   return (
@@ -59,19 +74,20 @@ export const HeroCarousel: React.FC<HeroCarouselProps> = ({ slides }) => {
       className="relative w-full overflow-hidden bg-gov-navy-950 select-none group"
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}
+      onTouchStart={handleTouchStart}
+      onTouchEnd={handleTouchEnd}
       aria-label="Album Hero Portal"
     >
-      {/* Slider Viewport */}
-      <div className="relative h-72 sm:h-96 md:h-[520px] lg:h-[560px] w-full">
+      {/* Slider Viewport - Responsive across mobile, tablet, laptop, and wide screens */}
+      <div className="relative h-48 xs:h-56 sm:h-80 md:h-[420px] lg:h-[500px] xl:h-[560px] w-full">
         {slides.map((slide, idx) => {
           const isActive = idx === activeIndex;
 
           return (
             <div
               key={slide.id || idx}
-              className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${
-                isActive ? 'opacity-100 z-10' : 'opacity-0 z-0 pointer-events-none'
-              }`}
+              className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${isActive ? 'opacity-100 z-10' : 'opacity-0 z-0 pointer-events-none'
+                }`}
             >
               {/* Image with subtle Ken Burns zoom */}
               <div className="w-full h-full overflow-hidden">
@@ -83,9 +99,8 @@ export const HeroCarousel: React.FC<HeroCarouselProps> = ({ slides }) => {
                   decoding={idx === 0 ? 'sync' : 'async'}
                   // @ts-ignore fetchPriority is supported in React 18.3
                   fetchPriority={idx === 0 ? 'high' : 'low'}
-                  className={`w-full h-full object-cover object-center transform transition-transform duration-[8000ms] ease-out ${
-                    isActive ? 'scale-105' : 'scale-100'
-                  }`}
+                  className={`w-full h-full object-cover object-center transform transition-transform duration-[8000ms] ease-out ${isActive ? 'scale-105' : 'scale-100'
+                    }`}
                   onError={(e) => {
                     const target = e.target as HTMLImageElement;
                     if (!target.dataset.triedDirect && slide.imageUrl.includes('lh3.googleusercontent.com')) {
@@ -100,12 +115,12 @@ export const HeroCarousel: React.FC<HeroCarouselProps> = ({ slides }) => {
               </div>
 
               {/* Subtle Bottom Vignette for Timeline Legibility */}
-              <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent pointer-events-none" />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent pointer-events-none" />
 
               {/* Badge Overlay */}
-              <div className="absolute bottom-14 sm:bottom-16 left-6 sm:left-12 lg:left-20 z-20">
-                <div className="inline-flex items-center space-x-2 px-3.5 py-1.5 rounded-full text-xs font-bold tracking-wider uppercase bg-gov-gold-500 text-gov-navy-950 shadow-md border border-gov-gold-400">
-                  <Sparkles className="w-3.5 h-3.5 text-gov-navy-950" />
+              <div className="absolute bottom-10 sm:bottom-16 left-4 sm:left-12 lg:left-20 z-20">
+                <div className="inline-flex items-center space-x-1.5 sm:space-x-2 px-2.5 py-1 sm:px-3.5 sm:py-1.5 rounded-full text-[10px] sm:text-xs font-bold tracking-wider uppercase bg-gov-gold-500 text-gov-navy-950 shadow-md border border-gov-gold-400">
+                  <Sparkles className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-gov-navy-950" />
                   <span>Barisan Kepimpinan Sektor</span>
                 </div>
               </div>
@@ -119,22 +134,22 @@ export const HeroCarousel: React.FC<HeroCarouselProps> = ({ slides }) => {
         <>
           <button
             onClick={goToPrev}
-            className="absolute left-4 top-1/2 -translate-y-1/2 z-20 p-3 rounded-full bg-gov-navy-950/60 hover:bg-gov-gold-500 text-white hover:text-gov-navy-950 backdrop-blur-md border border-white/10 shadow-lg transition-all duration-200"
+            className="absolute left-2.5 sm:left-4 top-1/2 -translate-y-1/2 z-20 p-2 sm:p-3 rounded-full bg-gov-navy-950/60 hover:bg-gov-gold-500 text-white hover:text-gov-navy-950 backdrop-blur-md border border-white/10 shadow-lg transition-all duration-200"
             aria-label="Slaid Sebelumnya"
           >
-            <ChevronLeft className="w-5 h-5" />
+            <ChevronLeft className="w-4 h-4 sm:w-5 sm:h-5" />
           </button>
 
           <button
             onClick={goToNext}
-            className="absolute right-4 top-1/2 -translate-y-1/2 z-20 p-3 rounded-full bg-gov-navy-950/60 hover:bg-gov-gold-500 text-white hover:text-gov-navy-950 backdrop-blur-md border border-white/10 shadow-lg transition-all duration-200"
+            className="absolute right-2.5 sm:right-4 top-1/2 -translate-y-1/2 z-20 p-2 sm:p-3 rounded-full bg-gov-navy-950/60 hover:bg-gov-gold-500 text-white hover:text-gov-navy-950 backdrop-blur-md border border-white/10 shadow-lg transition-all duration-200"
             aria-label="Slaid Seterusnya"
           >
-            <ChevronRight className="w-5 h-5" />
+            <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5" />
           </button>
 
           {/* Premium Progress Bar Indicators (Linear Timeline) */}
-          <div className="absolute bottom-6 left-6 right-6 sm:left-12 sm:right-12 lg:left-20 lg:right-20 z-20 flex items-center justify-between gap-4">
+          <div className="absolute bottom-3 sm:bottom-6 left-4 right-4 sm:left-12 sm:right-12 lg:left-20 lg:right-20 z-20 flex items-center justify-between gap-3 sm:gap-4">
             {/* Linear Progress Bars */}
             <div className="flex-1 flex items-center space-x-2 sm:space-x-3 max-w-md">
               {slides.map((_, idx) => {
@@ -145,17 +160,16 @@ export const HeroCarousel: React.FC<HeroCarouselProps> = ({ slides }) => {
                   <button
                     key={idx}
                     onClick={() => changeSlide(idx)}
-                    className="flex-1 h-1.5 rounded-full bg-white/20 overflow-hidden relative transition-all group/bar"
+                    className="flex-1 h-1 sm:h-1.5 rounded-full bg-white/20 overflow-hidden relative transition-all group/bar"
                     aria-label={`Pergi ke slaid ${idx + 1}`}
                   >
                     <div
-                      className={`h-full rounded-full transition-all duration-75 ${
-                        isActive
+                      className={`h-full rounded-full transition-all duration-75 ${isActive
                           ? 'bg-gov-gold-400'
                           : isPassed
-                          ? 'bg-white/80 w-full'
-                          : 'bg-transparent w-0'
-                      }`}
+                            ? 'bg-white/80 w-full'
+                            : 'bg-transparent w-0'
+                        }`}
                       style={{
                         width: isActive ? `${progress}%` : isPassed ? '100%' : '0%',
                       }}
@@ -166,13 +180,13 @@ export const HeroCarousel: React.FC<HeroCarouselProps> = ({ slides }) => {
             </div>
 
             {/* Slide Counter & Play/Pause State */}
-            <div className="flex items-center space-x-3 text-xs text-slate-300 font-mono">
+            <div className="flex items-center space-x-2 sm:space-x-3 text-[11px] sm:text-xs text-slate-300 font-mono">
               <button
                 onClick={() => setIsPaused(!isPaused)}
                 className="p-1 rounded-md hover:bg-white/10 text-slate-300 hover:text-white transition-colors"
                 title={isPaused ? 'Sambung semula' : 'Jeda slaid'}
               >
-                {isPaused ? <Play className="w-3.5 h-3.5 text-gov-gold-400" /> : <Pause className="w-3.5 h-3.5" />}
+                {isPaused ? <Play className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-gov-gold-400" /> : <Pause className="w-3 h-3 sm:w-3.5 sm:h-3.5" />}
               </button>
               <span className="font-semibold text-white">
                 {String(activeIndex + 1).padStart(2, '0')} / {String(total).padStart(2, '0')}

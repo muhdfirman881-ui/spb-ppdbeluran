@@ -41,7 +41,7 @@ export const ScrollProgressAndTop: React.FC = () => {
 
   return (
     <div
-      className={`fixed bottom-6 right-6 z-40 transition-all duration-300 ${
+      className={`fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-40 transition-all duration-300 ${
         isVisible
           ? 'opacity-100 translate-y-0 pointer-events-auto'
           : 'opacity-0 translate-y-4 pointer-events-none'
@@ -49,12 +49,12 @@ export const ScrollProgressAndTop: React.FC = () => {
     >
       <button
         onClick={scrollToTop}
-        className="relative group w-12 h-12 rounded-full bg-white dark:bg-gov-navy-900 border border-slate-200 dark:border-slate-700 shadow-xl flex items-center justify-center hover:scale-110 active:scale-95 transition-transform"
+        className="relative group w-11 h-11 sm:w-12 sm:h-12 rounded-full bg-white dark:bg-gov-navy-900 border border-slate-200 dark:border-slate-700 shadow-xl flex items-center justify-center hover:scale-110 active:scale-95 transition-transform"
         aria-label="Kembali ke atas"
         title="Kembali ke atas halaman"
       >
         {/* SVG Progress Ring */}
-        <svg className="w-12 h-12 -rotate-90 pointer-events-none absolute inset-0">
+        <svg viewBox="0 0 48 48" className="w-full h-full -rotate-90 pointer-events-none absolute inset-0">
           <circle
             cx="24"
             cy="24"
