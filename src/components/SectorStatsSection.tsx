@@ -29,6 +29,7 @@ export const SectorStatsSection: React.FC<SectorStatsSectionProps> = ({
     description: 'Laporan dan analisis Instrumen Pemantauan Pengurusan Kurikulum (IPPK) PPD Beluran.',
     displayOrder: 1,
     status: 'active',
+    uploadedAt: new Date().toISOString(),
   };
 
   const handleOpenIppk = () => {
