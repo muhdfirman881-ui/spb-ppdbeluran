@@ -1033,8 +1033,24 @@ export default function AdminDashboardPage() {
                       </label>
                     </div>
                     <span className="text-[10px] text-slate-400 mt-0.5 block">
-                      Disyorkan 1 keping foto rasmi bersaiz 1920 × 720 piksel (nisbah 8:3) agar muat sempurna tanpa terpotong.
+                      Tampal ID fail Google Drive (cth: 1XlxEuBMtVqhT0YDyg4NC1g1RPPGLXI7J) atau pautan fail Drive yang telah dikongsi (Anyone with the link can view). Disyorkan saiz 1920 × 720 px.
                     </span>
+
+                    {(editingUnit.teamPhotoUrl || editingUnit.bannerFileId) && (
+                      <div className="mt-2 flex items-center gap-3 p-2 rounded-xl bg-slate-50 dark:bg-gov-navy-950 border border-slate-200 dark:border-slate-800">
+                        <img
+                          src={getOptimizedImageUrl(editingUnit.teamPhotoUrl || editingUnit.bannerFileId)}
+                          alt="Pratonton Foto Unit"
+                          className="w-24 h-9 object-cover rounded-md border border-slate-200 dark:border-slate-700 bg-slate-800"
+                          onError={(e) => {
+                            (e.target as HTMLElement).style.display = 'none';
+                          }}
+                        />
+                        <span className="text-[11px] text-emerald-600 dark:text-emerald-400 font-medium">
+                          Imej dikesan &amp; sedia disimpan. Klik &quot;Simpan Unit&quot; di bawah.
+                        </span>
+                      </div>
+                    )}
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

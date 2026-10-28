@@ -54,12 +54,17 @@ export function getOptimizedImageUrl(url?: string | null): string {
   const trimmed = url.trim();
   if (trimmed.startsWith('/') || trimmed.startsWith('data:')) return trimmed;
 
-  // Extract Google Drive / UserContent fileId
+  // Extract Google Drive / UserContent fileId from full URLs
   const driveMatch = trimmed.match(
     /(?:lh3\.googleusercontent\.com\/d\/|drive\.google\.com\/(?:file\/d\/|uc\?(?:.*&)?id=|thumbnail\?(?:.*&)?id=))([a-zA-Z0-9_-]+)/
   );
   if (driveMatch && driveMatch[1]) {
     return `/api/images/${driveMatch[1]}`;
+  }
+
+  // If raw Google Drive file ID was entered directly (e.g. 1XlxEuBMtVqhT0YDyg4NC1g1RPPGLXI7J)
+  if (/^[a-zA-Z0-9_-]{25,60}$/.test(trimmed)) {
+    return `/api/images/${trimmed}`;
   }
 
   return trimmed;

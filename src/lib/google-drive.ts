@@ -78,25 +78,37 @@ export class GoogleDriveService {
     const folderId = payload.folderId || AppConfig.DRIVE_ROOT_FOLDER_ID;
     const parents = folderId ? [folderId] : undefined;
 
-    const res = await drive.files.create({
-      requestBody: {
-        name: payload.fileName,
-        mimeType: payload.contentType,
-        parents,
-      },
-      media: {
-        mimeType: payload.contentType,
-        body: stream,
-      },
-      fields: 'id, name, mimeType, size',
-    });
-
-    const fileId = res.data.id || `DRIVE_FILE_${Date.now()}`;
+    let fileId: string;
+    try {
+      const res = await drive.files.create({
+        supportsAllDrives: true,
+        requestBody: {
+          name: payload.fileName,
+          mimeType: payload.contentType,
+          parents,
+        },
+        media: {
+          mimeType: payload.contentType,
+          body: stream,
+        },
+        fields: 'id, name, mimeType, size',
+      });
+      fileId = res.data.id || `DRIVE_FILE_${Date.now()}`;
+    } catch (createErr: unknown) {
+      const msg = createErr instanceof Error ? createErr.message : String(createErr);
+      if (msg.includes('storage quota') || msg.includes('Service Accounts do not have storage quota')) {
+        throw new Error(
+          'Akaun Google Service Account tidak mempunyai kuota storan terus. Sila muat naik imej ke Google Drive anda, pastikan tetapan fail ialah "Anyone with the link can view", dan tampalkan ID fail (contoh: 1XlxEuBMtVqhT0YDyg4NC1g1RPPGLXI7J) ke ruangan input.'
+        );
+      }
+      throw createErr;
+    }
 
     // Set permission to anyone with link can view
     try {
       await drive.permissions.create({
         fileId,
+        supportsAllDrives: true,
         requestBody: {
           role: 'reader',
           type: 'anyone',
