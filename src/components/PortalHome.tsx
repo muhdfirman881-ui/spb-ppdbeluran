@@ -157,7 +157,7 @@ export const PortalHome: React.FC<PortalHomeProps> = ({ initialData }) => {
             />
 
             {/* Sektor Impact Metrics & Highlights */}
-            <SectorStatsSection />
+            <SectorStatsSection onPreviewDocument={(doc) => setPreviewDoc(doc)} />
 
             {/* Quick Access Digital Services */}
             <QuickAccessSection

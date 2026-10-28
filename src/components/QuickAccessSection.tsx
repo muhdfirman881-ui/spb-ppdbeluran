@@ -131,7 +131,7 @@ export const QuickAccessSection: React.FC<QuickAccessSectionProps> = ({
                     </p>
                   </div>
                   <div className="mt-6 pt-3 border-t border-slate-200/60 dark:border-slate-800/60 flex items-center text-xs font-bold text-gov-gold-600 dark:text-gov-gold-400">
-                    <span>Pratonton Dokumen</span>
+                    <span>Lihat Dokumen</span>
                     <ChevronRight className="w-4 h-4 ml-1 group-hover:translate-x-1.5 transition-transform" />
                   </div>
                 </div>

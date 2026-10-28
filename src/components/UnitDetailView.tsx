@@ -278,7 +278,7 @@ export const UnitDetailView: React.FC<UnitDetailViewProps> = ({
                           className="inline-flex items-center space-x-1.5 text-xs font-bold text-gov-gold-600 dark:text-gov-gold-400 hover:text-gov-gold-500 transition-colors"
                         >
                           <Eye className="w-3.5 h-3.5" />
-                          <span>Pratonton Fail</span>
+                          <span>Lihat Dokumen</span>
                         </button>
 
                         <div className="flex items-center space-x-1">

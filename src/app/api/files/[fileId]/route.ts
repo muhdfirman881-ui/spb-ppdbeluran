@@ -16,7 +16,7 @@ function createFallbackPdf(title: string, subtitle?: string): Buffer {
 0 -30 Td
 (${cleanSub}) Tj
 0 -25 Td
-(Pratonton Dokumen - Sektor Pembelajaran PPD Beluran) Tj
+(Lihat Dokumen - Sektor Pembelajaran PPD Beluran) Tj
 0 -20 Td
 (Dokumen boleh dimuat turun melalui butang Muat Turun di atas.) Tj
 ET`;

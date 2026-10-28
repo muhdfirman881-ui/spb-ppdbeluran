@@ -1,87 +1,184 @@
 'use client';
 
 import React from 'react';
-import { School, Layers, FileCheck, Award, TrendingUp, Users } from 'lucide-react';
+import {
+  FileSpreadsheet,
+  GraduationCap,
+  Award,
+  ChevronRight,
+  TrendingUp,
+} from 'lucide-react';
+import { DocumentRecord } from '@/types';
 
-export const SectorStatsSection: React.FC = () => {
-  const stats = [
-    {
-      value: '47',
-      unit: 'Buah',
-      label: 'Sekolah Rendah & Menengah',
-      desc: 'Institusi pendidikan seluruh daerah Beluran',
-      icon: <School className="w-6 h-6 text-gov-gold-500" />,
-      highlight: 'SK, SMK, SJKC & SABK',
-    },
-    {
-      value: '12',
-      unit: 'Unit & Bidang',
-      label: 'Unit Sektor & Pasukan SISC+',
-      desc: 'Bimbingan pedagogi & sokongan pembelajaran',
-      icon: <Layers className="w-6 h-6 text-gov-gold-500" />,
-      highlight: 'Khidmat Bimbingan Berterusan',
-    },
-    {
-      value: '100+',
-      unit: 'Bahan',
-      label: 'Repositori Modul & Dokumen',
-      desc: 'RPH, DSKP, Modul Intervensi & Panduan PdP',
-      icon: <FileCheck className="w-6 h-6 text-gov-gold-500" />,
-      highlight: 'Akses Muat Turun Segera',
-    },
-    {
-      value: '100%',
-      unit: 'Digital',
-      label: 'Penyelarasan Awan Google Drive',
-      desc: 'Data segerak & pengurusan instruksional tanpa kertas',
-      icon: <TrendingUp className="w-6 h-6 text-gov-gold-500" />,
-      highlight: 'Kitaran Maklumat Pantas',
-    },
-  ];
+interface SectorStatsSectionProps {
+  onPreviewDocument?: (doc: DocumentRecord) => void;
+}
+
+export const SectorStatsSection: React.FC<SectorStatsSectionProps> = ({
+  onPreviewDocument,
+}) => {
+  const ippkDoc: DocumentRecord = {
+    documentId: '1pgomDtyB-4YcQBhJ4-VqO7Ytn-vToz-F',
+    fileId: '1pgomDtyB-4YcQBhJ4-VqO7Ytn-vToz-F',
+    unitId: 'kurikulum',
+    title: 'DATA IPPK BIL. 1 TAHUN 2026 PPD BELURAN',
+    fileName: 'DATA_IPPK_BIL_1_2026_PPD_BELURAN.pdf',
+    fileType: 'pdf',
+    fileSize: 'PDF',
+    category: 'Data & Laporan Kurikulum',
+    description: 'Laporan dan analisis Instrumen Pemantauan Pengurusan Kurikulum (IPPK) PPD Beluran.',
+    displayOrder: 1,
+    status: 'active',
+  };
+
+  const handleOpenIppk = () => {
+    if (onPreviewDocument) {
+      onPreviewDocument(ippkDoc);
+    } else {
+      window.open(
+        'https://drive.google.com/file/d/1pgomDtyB-4YcQBhJ4-VqO7Ytn-vToz-F/view?usp=drive_link',
+        '_blank'
+      );
+    }
+  };
 
   return (
     <section className="relative z-20 py-8 sm:py-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
-        {stats.map((item, idx) => (
-          <div
-            key={idx}
-            className="group relative bg-white dark:bg-gov-navy-900 rounded-2xl p-5 sm:p-6 border border-slate-200/90 dark:border-slate-800 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1 overflow-hidden"
-          >
-            {/* Top accent line */}
-            <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-gov-gold-500/20 via-gov-gold-500 to-gov-gold-500/20 opacity-70 group-hover:opacity-100 transition-opacity" />
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-5 sm:gap-6">
+        {/* KAD 1: DATA IPPK */}
+        <div
+          onClick={handleOpenIppk}
+          className="group relative bg-white dark:bg-gov-navy-900 rounded-2xl p-6 sm:p-7 border border-slate-200/90 dark:border-slate-800 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1 overflow-hidden cursor-pointer flex flex-col justify-between"
+        >
+          {/* Top accent line */}
+          <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-gov-gold-500/20 via-gov-gold-500 to-gov-gold-500/20 opacity-70 group-hover:opacity-100 transition-opacity" />
 
-            {/* Background subtle watermark */}
-            <div className="absolute -right-3 -bottom-3 opacity-5 dark:opacity-10 pointer-events-none group-hover:scale-110 transition-transform duration-500">
-              {React.cloneElement(item.icon, { className: 'w-24 h-24' })}
-            </div>
+          {/* Background subtle watermark */}
+          <div className="absolute -right-3 -bottom-3 opacity-5 dark:opacity-10 pointer-events-none group-hover:scale-110 transition-transform duration-500">
+            <FileSpreadsheet className="w-28 h-28 text-gov-gold-500" />
+          </div>
 
+          <div>
             <div className="flex items-center justify-between mb-4">
-              <div className="w-11 h-11 rounded-xl bg-gov-gold-500/10 dark:bg-gov-navy-950 border border-gov-gold-500/20 flex items-center justify-center">
-                {item.icon}
+              <div className="w-12 h-12 rounded-xl bg-gov-gold-500/10 dark:bg-gov-navy-950 border border-gov-gold-500/20 flex items-center justify-center">
+                <FileSpreadsheet className="w-6 h-6 text-gov-gold-500" />
               </div>
-              <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">
-                {item.highlight}
+              <span className="text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full bg-gov-gold-500/15 text-gov-gold-600 dark:text-gov-gold-400 border border-gov-gold-500/30">
+                Pemantauan Kurikulum
               </span>
             </div>
 
             <div className="flex items-baseline space-x-1.5">
               <span className="font-serif text-3xl sm:text-4xl font-extrabold text-gov-navy-900 dark:text-white tracking-tight">
-                {item.value}
+                Bil. 1
               </span>
               <span className="text-xs font-semibold text-gov-gold-600 dark:text-gov-gold-400">
-                {item.unit}
+                / 2026
               </span>
             </div>
 
-            <h4 className="font-bold text-sm text-slate-900 dark:text-white mt-1.5 leading-snug">
-              {item.label}
+            <h4 className="font-bold text-base text-slate-900 dark:text-white mt-1.5 leading-snug group-hover:text-gov-gold-600 dark:group-hover:text-gov-gold-400 transition-colors">
+              Data IPPK
             </h4>
 
             <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 leading-relaxed">
-              {item.desc}
+              Instrumen Pemantauan Pengurusan Kurikulum sekolah-sekolah daerah Beluran.
             </p>
           </div>
-        ))}
+
+          <div className="mt-5 pt-3 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between text-xs font-bold text-gov-gold-600 dark:text-gov-gold-400">
+            <span>Lihat Dokumen</span>
+            <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+          </div>
+        </div>
+
+        {/* KAD 2: GRED PURATA SPM */}
+        <div className="group relative bg-white dark:bg-gov-navy-900 rounded-2xl p-6 sm:p-7 border border-slate-200/90 dark:border-slate-800 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1 overflow-hidden flex flex-col justify-between">
+          {/* Top accent line */}
+          <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-gov-gold-500/20 via-gov-gold-500 to-gov-gold-500/20 opacity-70 group-hover:opacity-100 transition-opacity" />
+
+          {/* Background subtle watermark */}
+          <div className="absolute -right-3 -bottom-3 opacity-5 dark:opacity-10 pointer-events-none group-hover:scale-110 transition-transform duration-500">
+            <GraduationCap className="w-28 h-28 text-gov-gold-500" />
+          </div>
+
+          <div>
+            <div className="flex items-center justify-between mb-4">
+              <div className="w-12 h-12 rounded-xl bg-gov-gold-500/10 dark:bg-gov-navy-950 border border-gov-gold-500/20 flex items-center justify-center">
+                <GraduationCap className="w-6 h-6 text-gov-gold-500" />
+              </div>
+              <span className="text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">
+                Peperiksaan SPM
+              </span>
+            </div>
+
+            <div className="flex items-baseline space-x-1.5">
+              <span className="font-serif text-3xl sm:text-4xl font-extrabold text-gov-navy-900 dark:text-white tracking-tight">
+                5.12
+              </span>
+              <span className="text-xs font-semibold text-gov-gold-600 dark:text-gov-gold-400">
+                GPD Daerah
+              </span>
+            </div>
+
+            <h4 className="font-bold text-base text-slate-900 dark:text-white mt-1.5 leading-snug">
+              Gred Purata SPM
+            </h4>
+
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 leading-relaxed">
+              Pencapaian Gred Purata Daerah (GPD) calon Sijil Pelajaran Malaysia daerah Beluran.
+            </p>
+          </div>
+
+          <div className="mt-5 pt-3 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between text-xs font-semibold text-slate-400">
+            <span>Prestasi Peperiksaan Awam</span>
+            <TrendingUp className="w-4 h-4 text-emerald-500" />
+          </div>
+        </div>
+
+        {/* KAD 3: PURATA LULUS MATA PELAJARAN */}
+        <div className="group relative bg-white dark:bg-gov-navy-900 rounded-2xl p-6 sm:p-7 border border-slate-200/90 dark:border-slate-800 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1 overflow-hidden flex flex-col justify-between">
+          {/* Top accent line */}
+          <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-gov-gold-500/20 via-gov-gold-500 to-gov-gold-500/20 opacity-70 group-hover:opacity-100 transition-opacity" />
+
+          {/* Background subtle watermark */}
+          <div className="absolute -right-3 -bottom-3 opacity-5 dark:opacity-10 pointer-events-none group-hover:scale-110 transition-transform duration-500">
+            <Award className="w-28 h-28 text-gov-gold-500" />
+          </div>
+
+          <div>
+            <div className="flex items-center justify-between mb-4">
+              <div className="w-12 h-12 rounded-xl bg-gov-gold-500/10 dark:bg-gov-navy-950 border border-gov-gold-500/20 flex items-center justify-center">
+                <Award className="w-6 h-6 text-gov-gold-500" />
+              </div>
+              <span className="text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">
+                Penguasaan Subjek
+              </span>
+            </div>
+
+            <div className="flex items-baseline space-x-1.5">
+              <span className="font-serif text-3xl sm:text-4xl font-extrabold text-gov-navy-900 dark:text-white tracking-tight">
+                89.4%
+              </span>
+              <span className="text-xs font-semibold text-gov-gold-600 dark:text-gov-gold-400">
+                Lulus
+              </span>
+            </div>
+
+            <h4 className="font-bold text-base text-slate-900 dark:text-white mt-1.5 leading-snug">
+              Purata Lulus Mata Pelajaran
+            </h4>
+
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 leading-relaxed">
+              Kadar kelulusan &amp; penguasaan bagi mata pelajaran SPM seluruh daerah Beluran.
+            </p>
+          </div>
+
+          <div className="mt-5 pt-3 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between text-xs font-semibold text-slate-400">
+            <span>Kadar Kelayakan Sijil</span>
+            <span className="text-xs font-bold text-emerald-500">Layak Sijil</span>
+          </div>
+        </div>
       </div>
     </section>
   );
