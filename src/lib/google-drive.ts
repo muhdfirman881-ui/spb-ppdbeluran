@@ -1,4 +1,5 @@
 import { google, drive_v3 } from 'googleapis';
+import { Readable } from 'stream';
 import { AppConfig } from './config';
 
 export class GoogleDriveService {
@@ -72,10 +73,7 @@ export class GoogleDriveService {
       };
     }
 
-    const { Readable } = await import('stream');
-    const stream = new Readable();
-    stream.push(buffer);
-    stream.push(null);
+    const stream = Readable.from(buffer);
 
     const folderId = payload.folderId || AppConfig.DRIVE_ROOT_FOLDER_ID;
     const parents = folderId ? [folderId] : undefined;

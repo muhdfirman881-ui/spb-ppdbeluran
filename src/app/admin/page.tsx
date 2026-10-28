@@ -279,6 +279,8 @@ export default function AdminDashboardPage() {
         setEditingUnit(null);
         const refetch = await fetch('/api/admin/units').then((r) => r.json());
         if (refetch.success) setUnits(refetch.data);
+      } else {
+        showToast(resData.error || 'Gagal menyimpan unit.', 'error');
       }
     } catch {
       showToast('Gagal menyimpan unit.', 'error');
@@ -293,6 +295,8 @@ export default function AdminDashboardPage() {
       if (data.success) {
         showToast('Unit dinyahaktifkan.');
         setUnits((prev) => prev.filter((u) => u.unitId !== unitId));
+      } else {
+        showToast(data.error || 'Gagal menyahaktifkan unit.', 'error');
       }
     } catch {
       showToast('Gagal menyahaktifkan unit.', 'error');
@@ -317,6 +321,8 @@ export default function AdminDashboardPage() {
         showToast('Kandungan disimpan.');
         setEditingContent(null);
         loadUnitContent(selectedUnitIdForContent);
+      } else {
+        showToast(resData.error || 'Gagal menyimpan kandungan.', 'error');
       }
     } catch {
       showToast('Gagal menyimpan kandungan.', 'error');
@@ -330,6 +336,8 @@ export default function AdminDashboardPage() {
       if (data.success) {
         showToast('Kandungan dipadam.');
         setUnitContentList((prev) => prev.filter((c) => c.contentId !== contentId));
+      } else {
+        showToast(data.error || 'Gagal memadam.', 'error');
       }
     } catch {
       showToast('Gagal memadam.', 'error');
@@ -354,6 +362,8 @@ export default function AdminDashboardPage() {
         setEditingEmployee(null);
         const refetch = await fetch('/api/admin/employees').then((r) => r.json());
         if (refetch.success) setEmployees(refetch.data);
+      } else {
+        showToast(resData.error || 'Gagal menyimpan maklumat pegawai.', 'error');
       }
     } catch {
       showToast('Gagal menyimpan maklumat pegawai.', 'error');
