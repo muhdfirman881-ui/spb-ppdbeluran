@@ -214,23 +214,27 @@ export class GoogleSheetsService {
         status: (String(r[5] || 'active') as 'active' | 'inactive'),
       })).filter((c) => c.status === 'active').sort((a, b) => a.displayOrder - b.displayOrder);
 
-      const quickAccess: QuickAccessService[] = (quickRows.length > 0 ? quickRows : []).map((r, idx) => {
-        const rawExternal = String(r[4] || '').trim().toLowerCase();
-        const isExternal =
-          rawExternal === 'ya' ||
-          rawExternal === 'true' ||
-          rawExternal === 'yes' ||
-          rawExternal === '1';
+      const excludedQuickTitles = ['ippk', 'gred purata', 'purata lulus'];
+      const quickAccess: QuickAccessService[] = (quickRows.length > 0 ? quickRows : [])
+        .map((r, idx) => {
+          const rawExternal = String(r[4] || '').trim().toLowerCase();
+          const isExternal =
+            rawExternal === 'ya' ||
+            rawExternal === 'true' ||
+            rawExternal === 'yes' ||
+            rawExternal === '1';
 
-        return {
-          title: String(r[0] || '').trim(),
-          description: String(r[1] || '').trim(),
-          icon: String(r[2] || 'globe').trim(),
-          link: String(r[3] || '#').trim(),
-          external: isExternal,
-          order: Number(r[5] || idx + 1),
-        };
-      }).sort((a, b) => a.order - b.order);
+          return {
+            title: String(r[0] || '').trim(),
+            description: String(r[1] || '').trim(),
+            icon: String(r[2] || 'globe').trim(),
+            link: String(r[3] || '#').trim(),
+            external: isExternal,
+            order: Number(r[5] || idx + 1),
+          };
+        })
+        .filter((s) => s.title && !excludedQuickTitles.some((ex) => s.title.toLowerCase().includes(ex)))
+        .sort((a, b) => a.order - b.order);
 
       const data = {
         heroAlbum: heroAlbum.length > 0 ? heroAlbum : [...globalMemoryDb.heroSlides],
@@ -1273,7 +1277,7 @@ export class GoogleSheetsService {
           range: `${AppConfig.SHEET_PERKHIDMATAN}!A2:F`,
         });
 
-        const rows = res.data.values || [];
+        const excludedQuickTitles = ['ippk', 'gred purata', 'purata lulus'];
         sheetServices = rows
           .map((r, idx) => {
             const rawExternal = String(r[4] || '').trim().toLowerCase();
@@ -1292,7 +1296,7 @@ export class GoogleSheetsService {
               order: Number(r[5] || idx + 1),
             };
           })
-          .filter((s) => s.title);
+          .filter((s) => s.title && !excludedQuickTitles.some((ex) => s.title.toLowerCase().includes(ex)));
       } catch (err) {
         console.warn('Google Sheets getQuickAccess error:', err);
       }

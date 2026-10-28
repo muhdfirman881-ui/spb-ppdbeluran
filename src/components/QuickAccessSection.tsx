@@ -52,16 +52,22 @@ export const QuickAccessSection: React.FC<QuickAccessSectionProps> = ({
     }
   };
 
+  const excludedKeywords = ['ippk', 'gred purata', 'purata lulus'];
+  const activeServices = (services || []).filter((item) => {
+    const titleLower = item.title.toLowerCase();
+    return !excludedKeywords.some((kw) => titleLower.includes(kw));
+  });
+
   return (
     <section className="py-14 sm:py-16 bg-white dark:bg-gov-navy-950 border-b border-slate-200 dark:border-slate-800/80 transition-colors">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center space-x-2 text-xs font-bold text-gov-gold-600 dark:text-gov-gold-400 uppercase tracking-wider mb-8">
           <Bookmark className="w-4 h-4 text-gov-gold-500" />
-          <span>Pautan Pantas & Perkhidmatan Digital Sektor</span>
+          <span>Pautan Pantas &amp; Perkhidmatan Digital Sektor</span>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-5 sm:gap-6">
-          {services.map((item, idx) => {
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 sm:gap-6">
+          {activeServices.map((item, idx) => {
             const isSiscInternal = item.link === '#unit';
             const driveFileId = extractDriveFileId(item.link);
             const isDocumentPreview = Boolean(driveFileId && onPreviewDocument);

@@ -167,7 +167,7 @@ export const SectorStatsSection: React.FC<SectorStatsSectionProps> = ({
             </div>
 
             <h4 className="font-bold text-base text-slate-900 dark:text-white mt-1.5 leading-snug">
-              Purata Lulus Mata Pelajaran
+              Purata Lulus Mata Pelajaran Teras
             </h4>
 
             <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 leading-relaxed">

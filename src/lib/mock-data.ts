@@ -274,14 +274,6 @@ export const initialQuickAccess: QuickAccessService[] = [
     external: true,
     order: 4,
   },
-  {
-    title: 'DATA IPPK BIL. 1 TAHUN 2026 PPD BELURAN',
-    description: 'Laporan dan analisis Instrumen Pemantauan Pengurusan Kurikulum (IPPK) PPD Beluran.',
-    icon: 'file-text',
-    link: 'https://drive.google.com/file/d/1pgomDtyB-4YcQBhJ4-VqO7Ytn-vToz-F/view?usp=drive_link',
-    external: true,
-    order: 5,
-  },
 ];
 
 export const initialUnitContent: UnitContent[] = [
