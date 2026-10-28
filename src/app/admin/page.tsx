@@ -904,13 +904,10 @@ export default function AdminDashboardPage() {
                       #{slide.order || idx + 1}
                     </span>
                   </div>
-                  <div className="p-4 flex items-center justify-between">
-                    <span className="text-xs font-medium text-slate-700 dark:text-slate-300 truncate max-w-[200px]">
-                      {slide.fileName || `Slaid ${idx + 1}`}
-                    </span>
+                  <div className="p-3 flex items-center justify-end">
                     <button
                       onClick={() => handleDeleteHeroSlide(slide.id)}
-                      className="p-1.5 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/50"
+                      className="p-1.5 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/50 transition-colors"
                       title="Padam slaid"
                     >
                       <Trash2 className="w-4 h-4" />
