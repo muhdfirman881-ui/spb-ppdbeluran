@@ -52,7 +52,7 @@ export const QuickAccessSection: React.FC<QuickAccessSectionProps> = ({
     }
   };
 
-  const excludedKeywords = ['ippk', 'gred purata', 'purata lulus'];
+  const excludedKeywords = ['ippk', 'gred purata', 'purata lulus', 'bimbingan sisc', 'sisc+'];
   const activeServices = (services || []).filter((item) => {
     const titleLower = item.title.toLowerCase();
     return !excludedKeywords.some((kw) => titleLower.includes(kw));
@@ -66,7 +66,7 @@ export const QuickAccessSection: React.FC<QuickAccessSectionProps> = ({
           <span>Pautan Pantas &amp; Perkhidmatan Digital Sektor</span>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 sm:gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-5 sm:gap-6">
           {activeServices.map((item, idx) => {
             const isSiscInternal = item.link === '#unit';
             const driveFileId = extractDriveFileId(item.link);

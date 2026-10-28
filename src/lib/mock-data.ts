@@ -259,20 +259,12 @@ export const initialQuickAccess: QuickAccessService[] = [
     order: 2,
   },
   {
-    title: 'Bimbingan SISC+',
-    description: 'Khidmat bimbingan pedagogi berfokus untuk sekolah daerah Beluran.',
-    icon: 'users',
-    link: '#unit',
-    external: false,
-    order: 3,
-  },
-  {
     title: 'DELIMa & Digital KPM',
     description: 'Pelantar pembelajaran digital kebangsaan bagi guru dan murid.',
     icon: 'globe',
     link: 'https://d2.delima.edu.my',
     external: true,
-    order: 4,
+    order: 3,
   },
 ];
 

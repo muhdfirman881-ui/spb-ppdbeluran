@@ -214,7 +214,7 @@ export class GoogleSheetsService {
         status: (String(r[5] || 'active') as 'active' | 'inactive'),
       })).filter((c) => c.status === 'active').sort((a, b) => a.displayOrder - b.displayOrder);
 
-      const excludedQuickTitles = ['ippk', 'gred purata', 'purata lulus'];
+      const excludedQuickTitles = ['ippk', 'gred purata', 'purata lulus', 'bimbingan sisc', 'sisc+'];
       const quickAccess: QuickAccessService[] = (quickRows.length > 0 ? quickRows : [])
         .map((r, idx) => {
           const rawExternal = String(r[4] || '').trim().toLowerCase();
@@ -1277,7 +1277,8 @@ export class GoogleSheetsService {
           range: `${AppConfig.SHEET_PERKHIDMATAN}!A2:F`,
         });
 
-        const excludedQuickTitles = ['ippk', 'gred purata', 'purata lulus'];
+        const rows = res.data.values || [];
+        const excludedQuickTitles = ['ippk', 'gred purata', 'purata lulus', 'bimbingan sisc', 'sisc+'];
         sheetServices = rows
           .map((r, idx) => {
             const rawExternal = String(r[4] || '').trim().toLowerCase();
