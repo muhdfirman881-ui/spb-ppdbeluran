@@ -83,7 +83,7 @@ export interface UnitContent {
 
 export interface Employee {
   employeeId: string;
-  unitId: string;
+  unitId?: string;
   name: string;
   position: string;
   photoFileId?: string;

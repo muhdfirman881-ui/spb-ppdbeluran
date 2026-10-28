@@ -1400,7 +1400,7 @@ export default function AdminDashboardPage() {
               <button
                 onClick={() =>
                   setEditingEmployee({
-                    unitId: units[0]?.unitId || '',
+                    unitId: '',
                     accessRole: 'staff',
                     status: 'active',
                     displayOrder: employees.length + 1,
@@ -1456,7 +1456,7 @@ export default function AdminDashboardPage() {
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                     <div>
                       <label className="block text-xs font-semibold mb-1 text-slate-600 dark:text-slate-300">
-                        Unit Sektor
+                        Unit Sektor <span className="text-slate-400 font-normal text-[11px]">(Pilihan / Tidak Wajib)</span>
                       </label>
                       <select
                         value={editingEmployee.unitId || ''}
@@ -1465,6 +1465,7 @@ export default function AdminDashboardPage() {
                         }
                         className="w-full px-3 py-2 rounded-lg bg-slate-50 dark:bg-gov-navy-950 border border-slate-200 dark:border-slate-800 text-xs focus:border-gov-gold-500 focus:outline-none"
                       >
+                        <option value="">-- Tiada Unit / Pengurusan Sektor (Pilihan) --</option>
                         {units.map((u) => (
                           <option key={u.unitId} value={u.unitId}>
                             {u.unitName}
@@ -1600,7 +1601,8 @@ export default function AdminDashboardPage() {
                           {emp.position}
                         </td>
                         <td className="py-3 px-4 text-slate-500">
-                          {units.find((u) => u.unitId === emp.unitId)?.unitName || emp.unitId}
+                          {units.find((u) => u.unitId === emp.unitId)?.unitName ||
+                            (emp.unitId ? emp.unitId : <span className="text-slate-400 italic">Tiada Unit / Sektor</span>)}
                         </td>
                         <td className="py-3 px-4 text-slate-500">{emp.email || '-'}</td>
                         <td className="py-3 px-4">

@@ -56,7 +56,7 @@ export const UnitContentSchema = z.object({
 
 export const EmployeeSchema = z.object({
   employeeId: z.string().optional(),
-  unitId: z.string().min(1, 'Unit wajib dipilih'),
+  unitId: z.string().optional().default(''),
   name: z.string().min(2, 'Nama pegawai wajib diisi'),
   position: z.string().min(2, 'Jawatan wajib diisi'),
   photoFileId: z.string().optional(),
