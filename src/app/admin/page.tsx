@@ -219,6 +219,24 @@ export default function AdminDashboardPage() {
   };
 
   // --- CRUD: Hero Album ---
+  const handleAddHeroSlideById = async () => {
+    const input = window.prompt('Masukkan ID fail Google Drive (cth: 1aJu8cjo7In9r4i0BS0V9j5gs8hwYddu1) atau URL imej bagi slaid hero:');
+    if (!input || !input.trim()) return;
+    const trimmed = input.trim();
+    const isDriveId = /^[a-zA-Z0-9_-]{25,60}$/.test(trimmed);
+    const imageUrl = isDriveId ? `https://lh3.googleusercontent.com/d/${trimmed}` : trimmed;
+    const newSlide: HeroSlide = {
+      id: `ALB_${Date.now()}`,
+      imageUrl,
+      order: heroSlides.length + 1,
+      fileName: `Slaid ${heroSlides.length + 1}`,
+      createdAt: new Date().toISOString(),
+    };
+    const updated = [...heroSlides, newSlide];
+    setHeroSlides(updated);
+    await saveHeroAlbum(updated);
+  };
+
   const handleAddHeroSlide = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -817,18 +835,25 @@ export default function AdminDashboardPage() {
                 </p>
               </div>
 
-              <div className="flex items-center space-x-3">
-                <label className="cursor-pointer inline-flex items-center space-x-2 px-4 py-2 rounded-xl bg-gov-gold-500 hover:bg-gov-gold-600 text-gov-navy-950 font-bold text-xs sm:text-sm shadow-xs transition-all">
-                  <Upload className="w-4 h-4" />
-                  <span>{isUploading ? 'Memuat Naik...' : 'Muat Naik Slaid Baharu'}</span>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={handleAddHeroSlide}
-                    disabled={isUploading}
-                    className="hidden"
-                  />
-                </label>
+              <div className="flex flex-wrap items-center gap-2">
+                <button
+                  type="button"
+                  onClick={handleAddHeroSlideById}
+                  className="inline-flex items-center space-x-1.5 px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 font-bold text-xs sm:text-sm border border-slate-200 dark:border-slate-700 transition-all shadow-xs"
+                >
+                  <Plus className="w-4 h-4 text-gov-gold-500" />
+                  <span>Tambah via ID Drive / URL</span>
+                </button>
+                <a
+                  href="https://drive.google.com"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center space-x-1.5 px-3 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-semibold border border-slate-200 dark:border-slate-700 transition-all"
+                  title="Buka Google Drive"
+                >
+                  <ExternalLink className="w-3.5 h-3.5 text-gov-gold-500" />
+                  <span>Buka Drive</span>
+                </a>
               </div>
             </div>
 
@@ -998,7 +1023,7 @@ export default function AdminDashboardPage() {
                     <div className="flex gap-2 items-center">
                       <input
                         type="text"
-                        placeholder="URL imej terus (https://...) atau ID fail Google Drive"
+                        placeholder="Tampal ID fail Google Drive (cth: 1XlxEuBMtVqhT0YDyg4NC1g1RPPGLXI7J) atau URL"
                         value={editingUnit.teamPhotoUrl || editingUnit.bannerFileId || ''}
                         onChange={(e) =>
                           setEditingUnit({
@@ -1009,35 +1034,27 @@ export default function AdminDashboardPage() {
                         }
                         className="flex-1 px-3 py-2 rounded-lg bg-slate-50 dark:bg-gov-navy-950 border border-slate-200 dark:border-slate-800 text-xs focus:border-gov-gold-500 focus:outline-none"
                       />
-                      <label className="cursor-pointer inline-flex items-center space-x-1.5 px-3 py-2 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-semibold transition-colors shrink-0">
-                        <Upload className="w-3.5 h-3.5" />
-                        <span>Muat Naik Foto</span>
-                        <input
-                          type="file"
-                          accept="image/*"
-                          className="hidden"
-                          onChange={async (e) => {
-                            const file = e.target.files?.[0];
-                            if (file) {
-                              const res = await handleFileUpload(file);
-                              if (res) {
-                                setEditingUnit({
-                                  ...editingUnit,
-                                  teamPhotoUrl: `https://lh3.googleusercontent.com/d/${res.fileId}`,
-                                  bannerFileId: res.fileId,
-                                });
-                              }
-                            }
-                          }}
-                        />
-                      </label>
+                      <a
+                        href={
+                          editingUnit.driveFolderId
+                            ? `https://drive.google.com/drive/folders/${editingUnit.driveFolderId}`
+                            : 'https://drive.google.com'
+                        }
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center space-x-1.5 px-3 py-2 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-semibold transition-colors shrink-0 border border-slate-200 dark:border-slate-700"
+                        title="Buka Google Drive untuk memuat naik foto anda"
+                      >
+                        <ExternalLink className="w-3.5 h-3.5 text-gov-gold-500" />
+                        <span>Buka Drive</span>
+                      </a>
                     </div>
-                    <span className="text-[10px] text-slate-400 mt-0.5 block">
-                      Tampal ID fail Google Drive (cth: 1XlxEuBMtVqhT0YDyg4NC1g1RPPGLXI7J) atau pautan fail Drive yang telah dikongsi (Anyone with the link can view). Disyorkan saiz 1920 × 720 px.
+                    <span className="text-[10px] text-slate-400 mt-1 block leading-relaxed">
+                      Langkah: 1) Klik <strong>&quot;Buka Drive&quot;</strong> &amp; muat naik foto anda &bull; 2) Klik kanan fail &rarr; <em>Share</em> (pilih <em>&quot;Anyone with the link can view&quot;</em>) &bull; 3) Salin ID fail (cth: <code>1XlxEuBMtVqhT0YDyg4NC1g1RPPGLXI7J</code>) &bull; 4) Tampal di sini dan klik <strong>&quot;Simpan Unit&quot;</strong>.
                     </span>
 
                     {(editingUnit.teamPhotoUrl || editingUnit.bannerFileId) && (
-                      <div className="mt-2 flex items-center gap-3 p-2 rounded-xl bg-slate-50 dark:bg-gov-navy-950 border border-slate-200 dark:border-slate-800">
+                      <div className="mt-2.5 flex items-center gap-3 p-2.5 rounded-xl bg-slate-50 dark:bg-gov-navy-950 border border-slate-200 dark:border-slate-800">
                         <img
                           src={getOptimizedImageUrl(editingUnit.teamPhotoUrl || editingUnit.bannerFileId)}
                           alt="Pratonton Foto Unit"
@@ -1046,9 +1063,14 @@ export default function AdminDashboardPage() {
                             (e.target as HTMLElement).style.display = 'none';
                           }}
                         />
-                        <span className="text-[11px] text-emerald-600 dark:text-emerald-400 font-medium">
-                          Imej dikesan &amp; sedia disimpan. Klik &quot;Simpan Unit&quot; di bawah.
-                        </span>
+                        <div className="flex flex-col">
+                          <span className="text-[11px] text-emerald-600 dark:text-emerald-400 font-bold">
+                            ✓ Foto dikesan &amp; sedia disimpan!
+                          </span>
+                          <span className="text-[10px] text-slate-400">
+                            Format disyorkan: 1920 × 720 piksel.
+                          </span>
+                        </div>
                       </div>
                     )}
                   </div>
@@ -1458,28 +1480,55 @@ export default function AdminDashboardPage() {
                     </div>
                   </div>
 
-                  {/* Photo upload */}
+                  {/* Photo input */}
                   <div>
                     <label className="block text-xs font-semibold mb-1 text-slate-600 dark:text-slate-300">
-                      Gambar Profil (Google Drive)
+                      Gambar Profil (ID Fail Google Drive / URL)
                     </label>
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={async (e) => {
-                        const file = e.target.files?.[0];
-                        if (file) {
-                          const res = await handleFileUpload(file);
-                          if (res) {
-                            setEditingEmployee({
-                              ...editingEmployee,
-                              photoFileId: res.fileId,
-                            });
-                          }
+                    <div className="flex gap-2 items-center">
+                      <input
+                        type="text"
+                        placeholder="Tampal ID fail Google Drive (cth: 1aJu8cjo7In9r4i0BS0V9j5gs8hwYddu1) atau URL"
+                        value={editingEmployee.photoFileId || editingEmployee.photoUrl || ''}
+                        onChange={(e) =>
+                          setEditingEmployee({
+                            ...editingEmployee,
+                            photoFileId: e.target.value,
+                            photoUrl: e.target.value,
+                          })
                         }
-                      }}
-                      className="text-xs file:mr-2 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-gov-gold-500 file:text-gov-navy-950"
-                    />
+                        className="flex-1 px-3 py-2 rounded-lg bg-slate-50 dark:bg-gov-navy-950 border border-slate-200 dark:border-slate-800 text-xs focus:border-gov-gold-500 focus:outline-none"
+                      />
+                      <a
+                        href="https://drive.google.com"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center space-x-1.5 px-3 py-2 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-semibold transition-colors shrink-0 border border-slate-200 dark:border-slate-700"
+                        title="Buka Google Drive"
+                      >
+                        <ExternalLink className="w-3.5 h-3.5 text-gov-gold-500" />
+                        <span>Buka Drive</span>
+                      </a>
+                    </div>
+                    <span className="text-[10px] text-slate-400 mt-1 block">
+                      Tampal ID fail foto pegawai (Pastikan tetapan fail: Anyone with link can view). Disyorkan nisbah 1:1.
+                    </span>
+
+                    {(editingEmployee.photoFileId || editingEmployee.photoUrl) && (
+                      <div className="mt-2.5 flex items-center gap-3 p-2 rounded-xl bg-slate-50 dark:bg-gov-navy-950 border border-slate-200 dark:border-slate-800">
+                        <img
+                          src={getOptimizedImageUrl(editingEmployee.photoFileId || editingEmployee.photoUrl)}
+                          alt="Pratonton Foto Pegawai"
+                          className="w-10 h-10 rounded-full object-cover border border-slate-200 dark:border-slate-700 bg-slate-800"
+                          onError={(e) => {
+                            (e.target as HTMLElement).style.display = 'none';
+                          }}
+                        />
+                        <span className="text-[11px] text-emerald-600 dark:text-emerald-400 font-medium">
+                          Foto profil dikesan &amp; sedia disimpan.
+                        </span>
+                      </div>
+                    )}
                   </div>
 
                   <div className="flex justify-end space-x-3 pt-2">
