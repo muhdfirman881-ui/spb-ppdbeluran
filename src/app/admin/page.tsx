@@ -15,7 +15,7 @@ import {
   AdminTab,
 } from '@/types';
 import { getErrorMessage } from '@/lib/errors';
-import { getOptimizedImageUrl } from '@/lib/config';
+import { getOptimizedImageUrl, extractGoogleDriveFileId } from '@/lib/config';
 import {
   ShieldCheck,
   LogOut,
@@ -1060,7 +1060,14 @@ export default function AdminDashboardPage() {
                           alt="Pratonton Foto Unit"
                           className="w-24 h-9 object-cover rounded-md border border-slate-200 dark:border-slate-700 bg-slate-800"
                           onError={(e) => {
-                            (e.target as HTMLElement).style.display = 'none';
+                            const target = e.currentTarget;
+                            const driveId = extractGoogleDriveFileId(editingUnit.teamPhotoUrl || editingUnit.bannerFileId);
+                            if (driveId && !target.dataset.triedFallback) {
+                              target.dataset.triedFallback = 'true';
+                              target.src = `https://lh3.googleusercontent.com/d/${driveId}`;
+                            } else {
+                              target.style.display = 'none';
+                            }
                           }}
                         />
                         <div className="flex flex-col">
@@ -1146,7 +1153,26 @@ export default function AdminDashboardPage() {
                           {u.unitCode}
                         </td>
                         <td className="py-3 px-4 font-medium text-slate-800 dark:text-slate-200">
-                          {u.unitName}
+                          <div className="flex items-center space-x-2.5">
+                            {(u.teamPhotoUrl || u.bannerFileId) && (
+                              <img
+                                src={getOptimizedImageUrl(u.teamPhotoUrl || u.bannerFileId)}
+                                alt=""
+                                className="w-8 h-5 object-cover rounded border border-slate-300 dark:border-slate-700 shrink-0 bg-slate-200 dark:bg-slate-800"
+                                onError={(e) => {
+                                  const target = e.currentTarget;
+                                  const driveId = extractGoogleDriveFileId(u.teamPhotoUrl || u.bannerFileId);
+                                  if (driveId && !target.dataset.triedFallback) {
+                                    target.dataset.triedFallback = 'true';
+                                    target.src = `https://lh3.googleusercontent.com/d/${driveId}`;
+                                  } else {
+                                    target.style.display = 'none';
+                                  }
+                                }}
+                              />
+                            )}
+                            <span>{u.unitName}</span>
+                          </div>
                         </td>
                         <td className="py-3 px-4 text-slate-500">
                           {u.categoryId === 'CAT_SISC' ? 'SISC+' : 'Unit Sokongan'}

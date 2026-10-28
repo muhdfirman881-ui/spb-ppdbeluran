@@ -49,22 +49,51 @@ export function getPublicPortalMeta() {
   };
 }
 
+export function extractGoogleDriveFileId(input?: string | null): string | null {
+  if (!input) return null;
+  const trimmed = input.trim();
+  if (!trimmed) return null;
+
+  // 1. If it's a raw Google Drive File ID (alphanumeric, dashes, underscores, length >= 20)
+  if (/^[a-zA-Z0-9_-]{20,60}$/.test(trimmed)) {
+    return trimmed;
+  }
+
+  // 2. Drive file view/download link: /file/d/<id>
+  const fileDMatch = trimmed.match(/\/file\/d\/([a-zA-Z0-9_-]{20,})/);
+  if (fileDMatch && fileDMatch[1]) return fileDMatch[1];
+
+  // 3. Drive parameter link: ?id=<id> or &id=<id> (uc?id=, open?id=, thumbnail?id=)
+  const idParamMatch = trimmed.match(/[?&]id=([a-zA-Z0-9_-]{20,})/);
+  if (idParamMatch && idParamMatch[1]) return idParamMatch[1];
+
+  // 4. Google UserContent / Google photos: lh3.googleusercontent.com/d/<id> or similar
+  const lh3Match = trimmed.match(
+    /(?:googleusercontent\.com|lh[0-9]\.google\.com)\/(?:u\/[0-9]+\/)?d\/([a-zA-Z0-9_-]{20,})/
+  );
+  if (lh3Match && lh3Match[1]) return lh3Match[1];
+
+  // 5. Check if it's already an internal /api/images/<id> or /api/files/<id>
+  const apiMatch = trimmed.match(/\/api\/(?:images|files)\/([a-zA-Z0-9_-]{20,})/);
+  if (apiMatch && apiMatch[1]) return apiMatch[1];
+
+  return null;
+}
+
 export function getOptimizedImageUrl(url?: string | null): string {
   if (!url) return '';
   const trimmed = url.trim();
-  if (trimmed.startsWith('/') || trimmed.startsWith('data:')) return trimmed;
+  if (!trimmed) return '';
 
-  // Extract Google Drive / UserContent fileId from full URLs
-  const driveMatch = trimmed.match(
-    /(?:lh3\.googleusercontent\.com\/d\/|drive\.google\.com\/(?:file\/d\/|uc\?(?:.*&)?id=|thumbnail\?(?:.*&)?id=))([a-zA-Z0-9_-]+)/
-  );
-  if (driveMatch && driveMatch[1]) {
-    return `/api/images/${driveMatch[1]}`;
+  // Check if it contains a Google Drive link or ID
+  const driveId = extractGoogleDriveFileId(trimmed);
+  if (driveId) {
+    return `/api/images/${driveId}`;
   }
 
-  // If raw Google Drive file ID was entered directly (e.g. 1XlxEuBMtVqhT0YDyg4NC1g1RPPGLXI7J)
-  if (/^[a-zA-Z0-9_-]{25,60}$/.test(trimmed)) {
-    return `/api/images/${trimmed}`;
+  // If local route or data URI
+  if (trimmed.startsWith('/') || trimmed.startsWith('data:')) {
+    return trimmed;
   }
 
   return trimmed;

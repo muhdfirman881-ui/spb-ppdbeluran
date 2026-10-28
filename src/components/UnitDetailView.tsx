@@ -13,7 +13,7 @@ import {
   ExternalLink,
   FolderOpen,
 } from 'lucide-react';
-import { getOptimizedImageUrl } from '@/lib/config';
+import { getOptimizedImageUrl, extractGoogleDriveFileId } from '@/lib/config';
 
 interface UnitDetailViewProps {
   unitData: UnitPortalData;
@@ -35,10 +35,7 @@ export const UnitDetailView: React.FC<UnitDetailViewProps> = ({
   const [selectedDocCategory, setSelectedDocCategory] = useState('Semua');
 
   // Team Photo URL detection
-  const rawPhoto =
-    unit.teamPhotoUrl ||
-    (unit.bannerFileId ? `https://lh3.googleusercontent.com/d/${unit.bannerFileId}` : '') ||
-    (unit.logoFileId ? `https://lh3.googleusercontent.com/d/${unit.logoFileId}` : '');
+  const rawPhoto = unit.teamPhotoUrl || unit.bannerFileId || unit.logoFileId || '';
   const teamPhotoSource = getOptimizedImageUrl(rawPhoto);
 
   // Extract unique document categories
@@ -134,7 +131,14 @@ export const UnitDetailView: React.FC<UnitDetailViewProps> = ({
                 decoding="async"
                 className="w-full h-full object-cover object-center group-hover:scale-[1.01] transition-transform duration-500"
                 onError={(e) => {
-                  (e.target as HTMLElement).style.display = 'none';
+                  const target = e.currentTarget;
+                  const driveId = extractGoogleDriveFileId(rawPhoto);
+                  if (driveId && !target.dataset.triedFallback) {
+                    target.dataset.triedFallback = 'true';
+                    target.src = `https://lh3.googleusercontent.com/d/${driveId}`;
+                  } else {
+                    target.style.display = 'none';
+                  }
                 }}
               />
               <div className="absolute inset-x-0 bottom-0 p-4 sm:p-5 bg-gradient-to-t from-black/80 via-black/30 to-transparent flex items-center justify-between pointer-events-none">
